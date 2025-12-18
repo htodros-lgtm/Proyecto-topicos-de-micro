@@ -5,7 +5,7 @@ import os
 # ============================================================
 # SECCIÓN DE AJUSTES (Modificá solo estos números)
 # ============================================================
-TAMANO_POSTRES = 35  # Achica este número para que entren los 3 juntos
+TAMANO_POSTRES = 65  # Achica este número para que entren los 3 juntos
 TAMANO_RELOJ   = 30  # Achica este número para que el reloj ocupe menos lugar
 # ============================================================
 
@@ -124,6 +124,7 @@ elif st.session_state.fase == 'final':
     st.markdown("<h2 style='text-align: center; color: #e21b2c; margin-top: 50px;'>🛵 ¡Tu pedido está en camino!</h2>", unsafe_allow_html=True)
     if st.button("Reiniciar"):
         st.session_state.fase = 'compra'; st.rerun()
+
 
 
 
