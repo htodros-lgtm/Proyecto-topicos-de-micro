@@ -3,131 +3,127 @@ import time
 import os
 
 # ============================================================
-# SECCIÓN DE AJUSTES
+# AJUSTES DE TAMAÑO
 # ============================================================
-TAMANO_POSTRES = 125  # El tamaño que te gustó
-TAMANO_RELOJ   = 35 
+TAMANO_FOTO  = 100  # Bajé a 100 para que el título tenga más aire y no se corte
+TAMANO_RELOJ = 35 
 # ============================================================
 
 st.set_page_config(page_title="Rappi Experimento", layout="centered")
 
+# CSS Profesional para alineación horizontal absoluta
 st.markdown(f"""
     <style>
     .block-container {{ padding-top: 1rem !important; }}
     
-    /* FUERZA LA ALINEACIÓN HORIZONTAL TIPO RAPPI */
-    .fila-postre {{
+    /* CONTENEDOR TIPO RAPPI/PEDIDOSYA */
+    .fila-container {{
         display: flex !important;
         flex-direction: row !important;
         align-items: center !important;
         justify-content: space-between !important;
-        gap: 10px;
-        padding: 5px 0;
+        width: 100% !important;
+        border-bottom: 1px solid #eee;
+        padding: 10px 0 !important;
     }}
 
-    /* Tamaño de imagen controlado */
-    .img-mini img {{
-        height: {TAMANO_POSTRES}px !important;
-        width: {TAMANO_POSTRES}px !important;
-        object-fit: cover !important;
+    /* Cuadrado de la foto (Celeste en tu dibujo) */
+    .foto-box {{
+        width: {TAMANO_FOTO}px !important;
+        height: {TAMANO_FOTO}px !important;
+        flex-shrink: 0 !important;
         border-radius: 10px;
-        flex-shrink: 0; /* Impide que la imagen se aplaste */
+        overflow: hidden;
+        margin-right: 10px;
+    }}
+    .foto-box img {{
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
     }}
 
-    .texto-info {{
+    /* Título (Las líneas en tu dibujo) */
+    .info-box {{
+        flex-grow: 1 !important;
         font-weight: bold;
-        font-size: 14px;
-        flex-grow: 1; /* Hace que el texto use el espacio central */
+        font-size: 15px !important;
+        color: #333;
         line-height: 1.2;
+        padding-right: 5px;
     }}
 
-    /* Botón compacto al lado */
-    .stButton>button {{ 
-        width: 80px !important; /* Ancho fijo para que entre al lado */
-        border-radius: 10px;
-        height: 2.5em;
-        background-color: #e21b2c;
-        color: white;
-        font-weight: bold;
-        border: none;
-        font-size: 12px;
-        padding: 0 5px;
+    /* Botón (El círculo/óvalo en tu dibujo) */
+    .div-boton {{
+        width: 90px !important;
+        flex-shrink: 0 !important;
     }}
-
-    /* Reloj */
-    .reloj-xl {{ color: #e21b2c; font-size: {TAMANO_RELOJ}px !important; font-weight: 900; text-align: center; line-height: 1; }}
-    .reloj-container {{ background-color: #fff2f2; padding: 5px; border-radius: 12px; border: 2px solid #e21b2c; margin: 5px 0; }}
     
-    /* Milanesa inicial */
-    .img-milanesa img {{ width: 100% !important; max-height: 250px !important; object-fit: contain; border-radius: 15px; }}
+    /* Estilo del botón de Streamlit dentro del div */
+    .stButton>button {{ 
+        border-radius: 20px !important;
+        background-color: #e21b2c !important;
+        color: white !important;
+        font-size: 12px !important;
+        height: 2.5em !important;
+        width: 100% !important;
+    }}
+
+    .reloj-xl {{ color: #e21b2c; font-size: {TAMANO_RELOJ}px !important; font-weight: 900; text-align: center; line-height: 1; }}
+    .reloj-container {{ background-color: #fff2f2; padding: 5px; border-radius: 12px; border: 2px solid #e21b2c; margin: 10px 0; }}
     </style>
     """, unsafe_allow_html=True)
 
 if 'fase' not in st.session_state:
     st.session_state.fase = 'compra'
 
-# Función para mostrar la fila horizontal forzada
-def crear_fila_postre(nombre_base, texto_mostrar, key_btn):
-    encontrada = False
-    for ext in [".png", ".jpg", ".jpeg", ".avif"]:
-        ruta = nombre_base + ext
-        if os.path.exists(ruta):
-            # Usamos HTML puro para garantizar la horizontalidad que no dan las columnas de Streamlit
-            col1, col2, col3 = st.columns([1, 2, 1])
-            with col1:
-                st.markdown(f'<div class="img-mini"><img src="app/static/{ruta}" onerror="this.src=\'https://via.placeholder.com/125\'"></div>', unsafe_allow_html=True)
-                # Nota: Si lo anterior no carga la imagen, usamos el método estándar pero dentro de un div
-                st.image(ruta, width=TAMANO_POSTRES)
-            with col2:
-                st.markdown(f'<div class="texto-info">{texto_mostrar}</div>', unsafe_allow_html=True)
-            with col3:
-                if st.button("Agregar", key=key_btn):
-                    st.session_state.fase = 'final'
-                    st.rerun()
-            encontrada = True
-            break
-    return encontrada
-
 # --- FASE 1: LA MILANESA ---
 if st.session_state.fase == 'compra':
-    st.markdown("<h2 style='text-align: center; margin:0;'>🍱 El Bodegón</h2>", unsafe_allow_html=True)
+    st.markdown("<h2 style='text-align: center;'>🍱 El Bodegón</h2>", unsafe_allow_html=True)
     if os.path.exists("milanesa.avif"):
         st.image("milanesa.avif", use_container_width=True)
-    st.markdown("<h4 style='text-align: center;'>Milanesa con Papas Fritas - $14.200</h4>", unsafe_allow_html=True)
-    if st.button("🛒 AGREGAR AL CARRITO", key="main_buy"):
+    st.write("### Milanesa con Papas Fritas - $14.200")
+    if st.button("🛒 AGREGAR AL CARRITO"):
         st.session_state.fase = 'oferta'; st.rerun()
 
-# --- FASE 2: OFERTA RELÁMPAGO ---
+# --- FASE 2: OFERTA RELÁMPAGO (INTERFAZ FLEXBOX) ---
 elif st.session_state.fase == 'oferta':
     st.markdown("<h2 style='text-align: center; margin:0;'>¡Pedido recibido!</h2>", unsafe_allow_html=True)
-    st.markdown("<h4 style='text-align: center; color: #1e7e34; margin:0;'>✅ Se está preparando tu pedido</h4>", unsafe_allow_html=True)
-    st.markdown("<p style='text-align: center; font-size: 13px;'>¡Podés agregar un postre antes de que salga tu repartidor!</p>", unsafe_allow_html=True)
+    st.markdown("<h4 style='text-align: center; color: #1e7e34; margin:0;'>✅ Preparando tu pedido</h4>", unsafe_allow_html=True)
+    st.markdown("<p style='text-align: center; font-size: 13px;'>¡Podés agregar un postre antes de salir!</p>", unsafe_allow_html=True)
     
     reloj_placeholder = st.empty()
     st.divider()
 
-    # Renderizado manual de filas horizontales
     postres = [
-        ("chocotorta", "Chocotorta $2.000", "btn_choco"),
-        ("flan", "Flan Mixto $2.000", "btn_flan"),
-        ("tiramisu", "Tiramisú $2.000", "btn_tira")
+        ("chocotorta", "Chocotorta $2.000"),
+        ("flan", "Flan Mixto $2.000"),
+        ("tiramisu", "Tiramisú $2.000")
     ]
 
-    for archivo, info, k in postres:
-        # Usamos columnas pero con un CSS que impide que se rompan en móvil
-        c1, c2, c3 = st.columns([1, 1.8, 1])
-        with c1:
-            for ext in [".png", ".jpg", ".jpeg", ".avif"]:
-                if os.path.exists(archivo + ext):
-                    st.markdown(f'<div class="img-mini">', unsafe_allow_html=True)
-                    st.image(archivo + ext, width=TAMANO_POSTRES)
-                    st.markdown('</div>', unsafe_allow_html=True)
-                    break
-        with c2:
-            st.markdown(f'<div class="texto-info">{info}</div>', unsafe_allow_html=True)
-        with c3:
-            st.write("") # Espaciador
-            if st.button("Agregar", key=k):
+    for archivo, nombre in postres:
+        # Buscamos la extensión correcta para la imagen
+        img_url = ""
+        for ext in [".png", ".jpg", ".jpeg", ".avif"]:
+            if os.path.exists(archivo + ext):
+                img_url = archivo + ext
+                break
+
+        # CREACIÓN DE LA FILA HORIZONTAL FORZADA
+        col_img, col_txt, col_btn = st.columns([1, 2, 1])
+        
+        with col_img:
+            if img_url: st.image(img_url, width=TAMANO_FOTO)
+            else: st.write("🖼️")
+        
+        with col_txt:
+            # Usamos un div con CSS para que el texto no se corte y esté centrado
+            st.markdown(f"<div style='display: flex; align-items: center; height: {TAMANO_FOTO}px; font-weight: bold;'>{nombre}</div>", unsafe_allow_html=True)
+            
+        with col_btn:
+            # El botón ahora tiene su propia columna y no empuja al resto
+            st.write(" ") # Espaciador vertical
+            st.write(" ")
+            if st.button("Sumar", key=nombre):
                 st.session_state.fase = 'final'; st.rerun()
         st.divider()
 
@@ -139,9 +135,10 @@ elif st.session_state.fase == 'oferta':
 
 elif st.session_state.fase == 'final':
     st.balloons()
-    st.markdown("<h2 style='text-align: center; color: #e21b2c; margin-top: 50px;'>🛵 ¡Tu pedido está en camino!</h2>", unsafe_allow_html=True)
+    st.markdown("<h2 style='text-align: center; color: #e21b2c; margin-top: 50px;'>🛵 ¡Pedido en camino!</h2>", unsafe_allow_html=True)
     if st.button("Reiniciar"):
         st.session_state.fase = 'compra'; st.rerun()
+
 
 
 
