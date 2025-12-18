@@ -118,3 +118,4 @@ elif st.session_state.fase == 'final':
         st.session_state.fase = 'compra'; st.rerun()
 
 
+
