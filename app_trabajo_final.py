@@ -3,7 +3,7 @@ import time
 import os
 
 # CONFIGURACIÓN DEL RELOJ
-TAMANO_RELOJ = 15
+TAMANO_RELOJ = 40
 
 st.set_page_config(page_title="Rappi Experimento - Grupo B", layout="centered")
 
@@ -104,7 +104,7 @@ elif st.session_state.fase == 'oferta':
                 st.rerun()
         st.divider()
 
-    for t in range(35, -1, -1):
+    for t in range(15, -1, -1):
         with reloj_placeholder.container():
             st.markdown(f"""
                 <div class='reloj-container'>
@@ -128,3 +128,4 @@ elif st.session_state.fase == 'final':
         st.session_state.fase = 'compra'
 
         st.rerun()
+
