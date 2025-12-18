@@ -24,7 +24,7 @@ st.markdown(f"""
 
     /* FOTOS MINI (Cuadraditos celestes de tu dibujo) */
     .img-mini img {{
-        height: 45px !important; width: 45px !important;
+        height: 15px !important; width: 15px !important;
         object-fit: cover !important; border-radius: 5px;
     }}
 
@@ -100,6 +100,7 @@ elif st.session_state.fase == 'final':
     st.markdown("<p style='text-align: center;'>¡Gracias por elegir El Bodegón!</p>", unsafe_allow_html=True)
     if st.button("Reiniciar"):
         st.session_state.fase = 'compra'; st.rerun()
+
 
 
 
