@@ -2,131 +2,111 @@ import streamlit as st
 import time
 import os
 
-# CONFIGURACIÓN DEL RELOJ
-TAMANO_RELOJ = 40
+# Configuración compacta
+st.set_page_config(page_title="Simulador de Pedido", layout="centered")
 
-st.set_page_config(page_title="Rappi Experimento - Grupo B", layout="centered")
-
-# Estilos CSS
-st.markdown(f"""
+# Estilos CSS Profesionales para Interfaz Móvil
+st.markdown("""
     <style>
-    .stButton>button {{ 
-        width: 100%; border-radius: 25px; height: 3.5em; 
-        background-color: #e21b2c; color: white; font-weight: bold; border: none; 
-    }}
-    .reloj-xl {{ 
-        color: #e21b2c; font-size: {TAMANO_RELOJ}px !important; 
-        font-weight: 900; margin: 0; text-align: center; 
-        font-family: 'Courier New', Courier, monospace; line-height: 0.7 !important;
-    }}
-    .reloj-container {{ 
-        background-color: #fff2f2; padding: 15px; border-radius: 30px; 
-        border: 4px solid #e21b2c; margin: 20px 0;
-    }}
-    .img-horizontal img {{
-        height: 120px !important; width: 180px !important;
-        object-fit: cover !important; border-radius: 15px;
-    }}
-    .texto-postre {{
-        display: flex; align-items: center; height: 120px;
-        font-weight: bold; font-size: 20px;
-    }}
-    .img-milanesa img {{
-        width: 100% !important; height: auto !important;
-        border-radius: 15px;
-    }}
-    .mensaje-final {{
-        text-align: center; font-size: 45px;
-        font-weight: bold; color: #e21b2c; margin-top: 50px;
-    }}
+    /* 1. Eliminar espacios muertos de Streamlit */
+    .block-container { padding-top: 1.5rem !important; padding-bottom: 0rem; }
+    
+    /* 2. Estilo de Botón "Agregar" tipo Rappi */
+    .stButton>button { 
+        width: 100%; border-radius: 12px; height: 2.4em; 
+        background-color: #e21b2c; color: white; font-weight: bold; border: none;
+        font-size: 14px; box-shadow: 0px 2px 4px rgba(0,0,0,0.1);
+    }
+    
+    /* 3. Reloj de urgencia estilizado */
+    .reloj-container { 
+        background-color: #fff2f2; padding: 10px; border-radius: 12px; 
+        border: 2px solid #e21b2c; margin-bottom: 15px; text-align: center;
+    }
+    .reloj-numero { 
+        color: #e21b2c; font-size: 32px !important; font-weight: 900; 
+        font-family: 'Courier New', monospace; line-height: 1;
+    }
+
+    /* 4. Diseño de FILA DE PRODUCTO (Card Horizontal) */
+    .product-row {
+        display: flex; align-items: center; justify-content: space-between;
+        padding: 8px 0; border-bottom: 1px solid #f0f0f0;
+    }
+    .img-product img {
+        height: 65px !important; width: 65px !important;
+        object-fit: cover !important; border-radius: 8px;
+    }
+    .text-product {
+        font-weight: 600; font-size: 15px; color: #333;
+    }
+    
+    /* Ajuste de títulos */
+    h2 { font-size: 22px !important; margin-bottom: 10px !important; }
     </style>
     """, unsafe_allow_html=True)
 
 if 'fase' not in st.session_state:
-    st.session_state.fase = 'compra'
+    st.session_state.fase = 'oferta'
 
-# Función corregida para buscar imágenes en la carpeta del servidor
-def mostrar_imagen_horizontal(nombre_base):
-    for ext in [".png", ".jpg", ".jpeg", ".avif"]:
-        ruta = nombre_base + ext
-        if os.path.exists(ruta):
-            st.markdown('<div class="img-horizontal">', unsafe_allow_html=True)
-            st.image(ruta, use_container_width=False)
-            st.markdown('</div>', unsafe_allow_html=True)
-            return True
-    return False
-
-# --- FASE 1: LA MILANESA ---
-if st.session_state.fase == 'compra':
-    st.markdown("<h1 style='text-align: center;'>🍱 El Bodegón</h1>", unsafe_allow_html=True)
-    # Buscamos la milanesa en la carpeta raíz
-    milanesa_encontrada = False
-    for ext in [".avif", ".png", ".jpg"]:
-        if os.path.exists("milanesa" + ext):
-            st.markdown('<div class="img-milanesa">', unsafe_allow_html=True)
-            st.image("milanesa" + ext, use_container_width=True)
-            st.markdown('</div>', unsafe_allow_html=True)
-            milanesa_encontrada = True
-            break
-    if not milanesa_encontrada:
-        st.warning("Imagen 'milanesa' no encontrada.")
-        
-    st.write("## Milanesa con Papas Fritas - $14.200")
-    if st.button("🛒 AGREGAR AL CARRITO", key="main_buy"):
-        st.session_state.fase = 'oferta'
-        st.rerun()
-
-# --- FASE 2: OFERTA RELÁMPAGO ---
-elif st.session_state.fase == 'oferta':
-    st.markdown("<h1 style='text-align: center;'>¡Pedido recibido!</h1>", unsafe_allow_html=True)
-    st.markdown("<h3 style='text-align: center; color: #1e7e34;'>✅ Se está preparando tu pedido</h3>", unsafe_allow_html=True)
-    st.markdown("<h3 style='text-align: center; color: #0a0a0a;'> ¡Podés agregar un postre a tu compra antes de que salga tu repartidor! </h3>", unsafe_allow_html=True)
+# --- INTERFAZ DE OFERTA ---
+if st.session_state.fase == 'oferta':
+    st.markdown("<h2 style='text-align: center;'>✅ ¡Pedido recibido!</h2>", unsafe_allow_html=True)
     
+    # Marcador de posición para el reloj (Urgencia visual)
     reloj_placeholder = st.empty()
-    st.divider()
 
-    # Los postres se buscan sin rutas absolutas
-    postres = [
-        ("chocotorta", "Chocotorta $2.000", "add_choco"),
-        ("flan", "Flan Mixto $2.000", "add_flan"),
-        ("tiramisu", "Tiramisú $2.000", "add_tira")
+    # Base de datos de productos (Simulada)
+    # Asegúrate de tener estas imágenes en tu carpeta de GitHub
+    productos = [
+        ("chocotorta", "Chocotorta", "$2.000", "btn_1"),
+        ("flan", "Flan Mixto", "$2.000", "btn_2"),
+        ("tiramisu", "Tiramisú", "$2.000", "btn_3")
     ]
 
-    for archivo, nombre, key in postres:
-        c1, c2, c3 = st.columns([1, 2, 1])
-        with c1: mostrar_imagen_horizontal(archivo)
-        with c2: st.markdown(f'<div class="texto-postre">{nombre}</div>', unsafe_allow_html=True)
-        with c3:
-            st.write("")
-            if st.button("Agregar al carrito", key=key):
-                st.session_state.postre = nombre
-                st.session_state.fase = 'final'
-                st.rerun()
-        st.divider()
+    # Renderizado de productos en columnas para simular "Cards" horizontales
+    for img_name, nombre, precio, key in productos:
+        col_img, col_txt, col_btn = st.columns([1, 2, 1])
+        
+        with col_img:
+            # Busca la imagen con cualquier extensión
+            encontrada = False
+            for ext in [".png", ".jpg", ".avif"]:
+                if os.path.exists(f"{img_name}{ext}"):
+                    st.markdown(f'<div class="img-product">', unsafe_allow_html=True)
+                    st.image(f"{img_name}{ext}")
+                    st.markdown('</div>', unsafe_allow_html=True)
+                    encontrada = True
+                    break
+            if not encontrada: st.caption("🖼️")
 
+        with col_txt:
+            st.markdown(f'<div style="padding-top:15px;"><span class="text-product">{nombre}</span><br><small>{precio}</small></div>', unsafe_allow_html=True)
+        
+        with col_btn:
+            st.write("") # Espaciador
+            if st.button("Sumar", key=key):
+                st.session_state.fase = 'final'; st.rerun()
+        
+        st.markdown("<hr style='margin:0.2em 0; opacity:0.1;'>", unsafe_allow_html=True)
+
+    # Motor del reloj (Sistema 1 de decisión rápida)
     for t in range(35, -1, -1):
         with reloj_placeholder.container():
             st.markdown(f"""
                 <div class='reloj-container'>
-                    <p style='margin: 0; text-align: center; font-weight: bold;'>EL REPARTIDOR SALE EN:</p>
-                    <p class='reloj-xl'>00:{t:02d}</p>
+                    <p style='margin: 0; font-size: 11px; font-weight: bold; color: #555;'>EL REPARTIDOR SALE EN:</p>
+                    <p class='reloj-numero'>00:{t:02d}</p>
                 </div>
             """, unsafe_allow_html=True)
         time.sleep(1)
-        if t == 0:
-            st.session_state.fase = 'final'
-            st.rerun()
+        if t == 0: st.session_state.fase = 'final'; st.rerun()
 
-# --- FASE 3: MENSAJE FINAL ---
 elif st.session_state.fase == 'final':
     st.balloons()
-    st.markdown("<div class='mensaje-final'>🛵 ¡Tu pedido está en camino!</div>", unsafe_allow_html=True)
-    st.markdown("<p style='text-align: center; font-size: 20px;'>¡Gracias por elegir El Bodegón!</p>", unsafe_allow_html=True)
-    
-    st.write("---")
-    if st.button("Reiniciar"):
-        st.session_state.fase = 'compra'
-        st.rerun()
+    st.markdown("<h1 style='text-align: center; color: #e21b2c; margin-top: 50px;'>🛵 ¡En camino!</h1>", unsafe_allow_html=True)
+    if st.button("Hacer otro pedido"):
+        st.session_state.fase = 'oferta'; st.rerun()
 
 
 
