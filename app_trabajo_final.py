@@ -98,7 +98,8 @@ if st.session_state.fase == 'compra':
 elif st.session_state.fase == 'oferta':
     st.markdown("<h1 style='text-align: center; margin:0;'>¡Pedido recibido!</h1>", unsafe_allow_html=True)
     st.markdown("<h4 style='text-align: center; color: #1e7e34; margin:0;'>✅ Se está preparando tu pedido</h4>", unsafe_allow_html=True)
-    
+    st.markdown("<h4 style='text-align: center; color: #0a0a0a; margin:0;'> Podes agregar un postre a tu pedido antes de que el repartidor inicie su recorrido!</h4>", unsafe_allow_html=True)
+
     reloj_placeholder = st.empty()
     st.write("")
 
@@ -138,6 +139,7 @@ elif st.session_state.fase == 'final':
     if st.button("Reiniciar"):
         st.session_state.fase = 'compra'; st.rerun()
         
+
 
 
 
