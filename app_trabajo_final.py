@@ -11,10 +11,10 @@ TAMANO_RELOJ = 35
 
 st.set_page_config(page_title="Rappi Experimento", layout="centered")
 
-# CONEXIÓN A TU GOOGLE SHEET
+# CONEXIÓN (NO TOCAR - YA FUNCIONA)
 conn = st.connection("gsheets", type=GSheetsConnection)
 
-# INICIALIZACIÓN
+# VARIABLES
 if 'fase' not in st.session_state:
     st.session_state.fase = 'perfil'
 if 'carrito' not in st.session_state:
@@ -24,7 +24,6 @@ if 'datos_usuario' not in st.session_state:
 
 st.markdown(f"""
     <style>
-    .main .block-container {{ padding-top: 5rem !important; }}
     .stButton>button {{ border-radius: 10px !important; background-color: #e21b2c !important; color: white !important; font-weight: bold !important; width: 100% !important; height: 2.8em !important; border: none !important; }}
     .btn-agregado button {{ background-color: #1e7e34 !important; }}
     .reloj-container {{ background-color: #fff2f2; padding: 10px; border-radius: 15px; border: 2px solid #e21b2c; text-align: center; margin: 15px 0; }}
@@ -45,15 +44,18 @@ if st.session_state.fase == 'perfil':
 
 # --- FASE 1: COMPRA MILANESA ---
 elif st.session_state.fase == 'compra_milanesa':
-    st.image("milanesa.avif", use_container_width=True)
+    if os.path.exists("milanesa.avif"):
+        st.image("milanesa.avif", use_container_width=True)
     if st.button("🛒 COMPRAR MILANESA"):
         st.session_state.fase = 'oferta_reloj'
         st.session_state.timer_start = time.time()
         st.rerun()
 
-# --- FASE 2: EL REPARTIDOR SALE EN (OFERTA DIRECTA) ---
+# --- FASE 2: RELOJ + POSTRES ---
 elif st.session_state.fase == 'oferta_reloj':
     st.success("¡Pedido confirmado! Se está armando tu pedido...")
+    st.write("Podés agregar un postre antes de que salga el repartidor.")
+    
     reloj_placeholder = st.empty()
     elapsed = time.time() - st.session_state.timer_start
     remaining = max(0, int(35 - elapsed))
@@ -86,33 +88,46 @@ elif st.session_state.fase == 'oferta_reloj':
         st.session_state.fase = 'preguntas'
         st.rerun()
 
-# --- FASE 3: PREGUNTAS Y GUARDADO ---
+# --- FASE 3: PREGUNTAS DIFERENCIADAS ---
 elif st.session_state.fase == 'preguntas':
     st.title("💡 Unas últimas preguntas")
+    
+    # Determinamos si compró o no para mostrar preguntas distintas
+    compro_postre = len(st.session_state.carrito) > 0
+    
     with st.form("final"):
-        motivo = st.radio("¿Por qué tomaste esa decisión?", ["Tentación", "Precio", "Urgencia", "Otro"])
-        hubiera = st.radio("¿Lo hubieras pedido sin la oferta?", ["Sí", "No"])
+        if compro_postre:
+            st.info("Vimos que **AGREGASTE** postre.")
+            motivo = st.radio("¿Qué influyó más en tu decisión?", ["La oferta/precio", "La urgencia del reloj", "Tenía antojo", "Otro"])
+            hubiera = st.radio("¿Lo hubieras comprado a precio normal ($4000)?", ["Sí", "No"])
+        else:
+            st.info("Vimos que **NO** agregaste postre.")
+            motivo = st.radio("¿Por qué decidiste no comprar?", ["Muy caro", "No quería postre", "Me puso nervioso el tiempo", "Otro"])
+            hubiera = st.radio("¿Si tuvieras más tiempo para pensar, lo comprabas?", ["Sí", "No"])
+
         if st.form_submit_button("Finalizar"):
             try:
                 nueva_fila = pd.DataFrame([{
                     "Fecha": datetime.now().strftime("%d/%m/%Y %H:%M"),
                     "Sexo": st.session_state.datos_usuario['sexo'],
                     "Edad": st.session_state.datos_usuario['edad'],
-                    "Eligio": "SI" if st.session_state.carrito else "NO",
+                    "Eligio": "SI" if compro_postre else "NO",
                     "Postres": ", ".join(st.session_state.carrito),
                     "Tiempo_Seg": st.session_state.datos_usuario.get('t_reaccion', "N/A"),
                     "Motivo": motivo,
                     "Sin_Oferta": hubiera
                 }])
-                conn.create(data=nueva_fila) # AQUÍ SE SINCRONIZA
+                
+                conn.create(data=nueva_fila)
                 st.session_state.fase = 'gracias'
                 st.rerun()
             except Exception as e:
-                st.error(f"Error: {e}")
+                st.error(f"Error al guardar: {e}")
 
 elif st.session_state.fase == 'gracias':
     st.balloons()
     st.success("¡Tu pedido está en camino!")
     st.write("Gracias por participar.")
+
 
 
