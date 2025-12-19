@@ -158,12 +158,6 @@ elif st.session_state.fase == 'oferta':
         time.sleep(1)
         if t == 0: st.session_state.fase = 'final'; st.rerun()
 
-elif st.session_state.fase == 'final':
-    st.balloons()
-    st.markdown("<h1 style='text-align: center; color: #e21b2c; margin-top: 50px;'>🛵 ¡Tu pedido está en camino!</h1>", unsafe_allow_html=True)
-    if st.button("Reiniciar"):
-        st.session_state.fase = 'cuestionario'; st.rerun()
-
 # --- FASE 4: PREGUNTAS DE ECONOMÍA CONDUCTUAL ---
 elif st.session_state.fase == 'final':
     st.title("💡 Unas últimas preguntas")
@@ -210,6 +204,7 @@ elif st.session_state.fase == 'final':
             # Aquí podrías guardar razon_custom_si o razon_custom_no en tu base de datos
             st.session_state.fase = 'agradecimiento'
             st.rerun()
+
 
 
 
