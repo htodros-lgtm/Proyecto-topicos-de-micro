@@ -115,3 +115,4 @@ elif st.session_state.fase == 'gracias':
     st.success("¡Tu pedido está en camino!")
     st.write("Gracias por participar.")
 
+
