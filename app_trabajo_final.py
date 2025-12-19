@@ -5,16 +5,17 @@ import pandas as pd
 from datetime import datetime
 from streamlit_gsheets import GSheetsConnection
 
-# AJUSTES ORIGINALES
+# --- CONFIGURACIÓN ---
 TAMANO_FOTO  = 100  
 TAMANO_RELOJ = 35 
+HOJA_GOOGLE  = "Respuestas" # ¡Asegurate que tu hoja en Excel se llame así!
 
 st.set_page_config(page_title="Rappi Experimento", layout="centered")
 
-# CONEXIÓN (NO TOCAR - YA FUNCIONA)
+# CONEXIÓN
 conn = st.connection("gsheets", type=GSheetsConnection)
 
-# VARIABLES
+# VARIABLES DE ESTADO
 if 'fase' not in st.session_state:
     st.session_state.fase = 'perfil'
 if 'carrito' not in st.session_state:
@@ -88,11 +89,9 @@ elif st.session_state.fase == 'oferta_reloj':
         st.session_state.fase = 'preguntas'
         st.rerun()
 
-# --- FASE 3: PREGUNTAS DIFERENCIADAS ---
+# --- FASE 3: PREGUNTAS Y GUARDADO ACUMULATIVO ---
 elif st.session_state.fase == 'preguntas':
     st.title("💡 Unas últimas preguntas")
-    
-    # Determinamos si compró o no para mostrar preguntas distintas
     compro_postre = len(st.session_state.carrito) > 0
     
     with st.form("final"):
@@ -107,6 +106,7 @@ elif st.session_state.fase == 'preguntas':
 
         if st.form_submit_button("Finalizar"):
             try:
+                # 1. Creamos la fila nueva con los datos actuales
                 nueva_fila = pd.DataFrame([{
                     "Fecha": datetime.now().strftime("%d/%m/%Y %H:%M"),
                     "Sexo": st.session_state.datos_usuario['sexo'],
@@ -118,7 +118,20 @@ elif st.session_state.fase == 'preguntas':
                     "Sin_Oferta": hubiera
                 }])
                 
-                conn.create(data=nueva_fila)
+                # 2. Leemos lo que ya existe en la hoja "Respuestas"
+                # ttl=0 es CLAVE para que no use memoria vieja
+                try:
+                    df_existente = conn.read(worksheet=HOJA_GOOGLE, ttl=0)
+                    df_existente = df_existente.dropna(how='all') # Limpiamos filas vacías
+                    # 3. Pegamos lo nuevo abajo de lo viejo
+                    df_final = pd.concat([df_existente, nueva_fila], ignore_index=True)
+                except Exception:
+                    # Si falla al leer (ej. es la primera vez), usamos solo la nueva fila
+                    df_final = nueva_fila
+
+                # 4. Actualizamos la hoja completa
+                conn.update(worksheet=HOJA_GOOGLE, data=df_final)
+                
                 st.session_state.fase = 'gracias'
                 st.rerun()
             except Exception as e:
