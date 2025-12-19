@@ -3,111 +3,164 @@ import time
 import os
 
 # ============================================================
-# CONFIGURACIÓN Y ESTILOS
+# AJUSTES DE TAMAÑO (Tu configuración exacta)
 # ============================================================
-st.set_page_config(page_title="Experimento Economía Conductual", layout="centered")
+TAMANO_FOTO  = 100  
+TAMANO_RELOJ = 35 
+# ============================================================
 
-st.markdown("""
+st.set_page_config(page_title="Rappi Experimento", layout="centered")
+
+st.markdown(f"""
     <style>
-    .main .block-container { padding-top: 3rem !important; }
-    /* Botón Comprar Grande */
-    .stButton>button[kind="primary"] {
-        width: 100% !important; height: 60px !important;
-        background-color: #e21b2c !important; color: white !important;
-        font-size: 20px !important; font-weight: bold !important; border-radius: 15px !important;
-    }
-    /* Estilo para filas de postres horizontales */
-    .fila-postre { display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid #eee; padding: 10px 0; }
+    .main .block-container {{ padding-top: 5rem !important; }}
+    
+    /* ESTILOS DE TU CÓDIGO DEFINITIVO */
+    .fila-postre {{
+        display: flex !important;
+        flex-direction: row !important;
+        align-items: center !important;
+        justify-content: space-between !important;
+        width: 100% !important;
+        margin-bottom: 15px;
+        border-bottom: 1px solid #eee;
+        padding-bottom: 10px;
+    }}
+
+    .foto-contenedor {{
+        width: {TAMANO_FOTO}px !important;
+        height: {TAMANO_FOTO}px !important;
+        flex-shrink: 0 !important;
+        border-radius: 10px;
+        overflow: hidden;
+    }}
+    .foto-contenedor img {{ width: 100%; height: 100%; object-fit: cover; }}
+
+    .texto-contenedor {{
+        flex-grow: 1 !important;
+        padding: 0 10px !important;
+        font-weight: bold;
+        font-size: 14px !important;
+        line-height: 1.2;
+    }}
+
+    .btn-sumar-col {{ width: 80px !important; flex-shrink: 0 !important; }}
+    
+    .stButton>button {{ 
+        border-radius: 10px !important;
+        background-color: #e21b2c !important;
+        color: white !important;
+        font-weight: bold !important;
+        width: 100% !important;
+        height: 2.8em !important;
+        border: none !important;
+        font-size: 13px !important;
+    }}
+
+    .contenedor-milanesa {{
+        display: flex;
+        justify-content: center;
+        width: 100%;
+        margin-top: 20px;
+    }}
+    .btn-milanesa button {{
+        width: 280px !important; 
+        height: 4.5em !important;
+        font-size: 18px !important;
+        display: block !important;
+        margin: 0 auto !important;
+    }}
+
+    .reloj-container {{ background-color: #fff2f2; padding: 10px; border-radius: 15px; border: 2px solid #e21b2c; text-align: center; margin: 15px 0; }}
+    .reloj-xl {{ color: #e21b2c; font-size: {TAMANO_RELOJ}px !important; font-weight: 900; line-height: 1; }}
     </style>
     """, unsafe_allow_html=True)
 
-# Inicializar estados
+# Lógica de navegación del experimento
 if 'fase' not in st.session_state:
-    st.session_state.fase = 'perfil'
-if 'datos_usuario' not in st.session_state:
-    st.session_state.datos_usuario = {}
+    st.session_state.fase = 'cuestionario'
 
-# ============================================================
-# FASE 0: PANTALLA DE PERFIL (ENCUESTA)
-# ============================================================
-if st.session_state.fase == 'perfil':
-    st.title("📋 Breve Encuesta Inicial")
-    st.write("Por favor, completá estos datos para comenzar la simulación.")
-    
-    with st.form("encuesta_inicial"):
+# --- FASE 0: CUESTIONARIO ---
+if st.session_state.fase == 'cuestionario':
+    st.title("📋 Perfil del Participante")
+    with st.form("perfil"):
         sexo = st.radio("Sexo:", ["Masculino", "Femenino", "Otro"])
         edad = st.selectbox("Edad:", ["Menos de 20", "Entre 20 y 30 años", "Entre 30 y 50 años", "Más de 50"])
-        hambre = st.slider("¿Cuánta hambre tenés ahora? (1: Nada - 5: Mucha)", 1, 5, 3)
-        uso_apps = st.radio("¿Frecuencia de uso de apps de delivery?", ["Nunca/Raro", "1 vez por semana", "3 o más veces por semana"])
-        
-        submitted = st.form_submit_button("EMPEZAR SIMULACIÓN")
-        if submitted:
-            st.session_state.datos_usuario = {
-                "sexo": sexo, "edad": edad, "hambre": hambre, "uso_apps": uso_apps
-            }
-            st.session_state.fase = 'compra'
+        if st.form_submit_button("Continuar"):
+            st.session_state.fase = 'instrucciones'
             st.rerun()
 
-# ============================================================
-# FASE 1: LA MILANESA (ANCLAJE DE PRECIO)
-# ============================================================
+# --- FASE 1: EXPLICACIÓN DE LA DINÁMICA ---
+elif st.session_state.fase == 'instrucciones':
+    st.title("🎮 Dinámica de la Simulación")
+    st.markdown("""
+    Estás por ingresar a un simulador de compra de una aplicación de delivery. 
+    
+    **¿Cómo funciona?**
+    1. Se te presentará un menú con un plato principal.
+    2. Deberás realizar la compra como si estuvieras en una situación real.
+    3. Una vez confirmada la orden, la aplicación te notificará el estado del pedido.
+    
+    **Importante:** Por favor, interactúa con la interfaz de forma natural, prestando atención a los mensajes y opciones que aparezcan en pantalla.
+    """)
+    
+    if st.button("COMENZAR EXPERIMENTO", type="secondary"):
+        st.session_state.fase = 'compra'
+        st.rerun()
+
+# --- FASE 2: LA MILANESA (Tu código intacto) ---
 elif st.session_state.fase == 'compra':
     st.markdown("<h1 style='text-align: center;'>🍱 El Bodegón</h1>", unsafe_allow_html=True)
     if os.path.exists("milanesa.avif"):
         st.image("milanesa.avif", use_container_width=True)
     st.markdown("<h3 style='text-align: center;'>Milanesa con Papas Fritas - $14.200</h3>", unsafe_allow_html=True)
     
-    if st.button("🛒 AGREGAR AL CARRITO", type="primary"):
-        st.session_state.fase = 'oferta'
-        st.rerun()
+    st.markdown('<div class="contenedor-milanesa btn-milanesa">', unsafe_allow_html=True)
+    if st.button("🛒 COMPRAR AHORA", key="buy_milan"):
+        st.session_state.fase = 'oferta'; st.rerun()
+    st.markdown('</div>', unsafe_allow_html=True)
 
-# ============================================================
-# FASE 2: OFERTA RELÁMPAGO (NUDGING Y ESCASEZ)
-# ============================================================
+# --- FASE 3: OFERTA RELÁMPAGO (Tu código intacto) ---
 elif st.session_state.fase == 'oferta':
-    st.markdown("<h2 style='text-align: center;'>¡Pedido recibido!</h2>", unsafe_allow_html=True)
-    st.markdown("<h4 style='text-align: center; color: #1e7e34;'>✅ Se está preparando tu pedido</h4>", unsafe_allow_html=True)
-    
-    # RELOJ DE CUENTA ATRÁS
+    st.markdown("<h1 style='text-align: center; margin:0;'>¡Pedido recibido!</h1>", unsafe_allow_html=True)
+    st.markdown("<h4 style='text-align: center; color: #1e7e34; margin:0;'>✅ Se está preparando tu pedido</h4>", unsafe_allow_html=True)
+    st.markdown("<h4 style='text-align: center; color: #0a0a0a; margin:0;'> Podes agregar un postre a tu pedido antes de que el repartidor inicie su recorrido!</h4>", unsafe_allow_html=True)
+
     reloj_placeholder = st.empty()
-    st.write("---")
+    st.write("")
 
     postres = [("chocotorta", "Chocotorta $2.000"), ("flan", "Flan Mixto $2.000"), ("tiramisu", "Tiramisú $2.000")]
 
     for archivo, nombre in postres:
+        img_url = ""
+        for ext in [".png", ".jpg", ".jpeg", ".avif"]:
+            if os.path.exists(archivo + ext):
+                img_url = archivo + ext
+                break
+        
         c1, c2, c3 = st.columns([1, 1.5, 0.8])
         with c1:
-            for ext in [".png", ".jpg", ".jpeg", ".avif"]:
-                if os.path.exists(archivo + ext):
-                    st.image(archivo + ext, width=120)
-                    break
+            if img_url: st.image(img_url, width=TAMANO_FOTO)
         with c2:
-            st.markdown(f"<div style='height: 120px; display: flex; align-items: center; font-weight: bold;'>{nombre}</div>", unsafe_allow_html=True)
+            st.markdown(f"<div style='display: flex; align-items: center; height: {TAMANO_FOTO}px; font-weight: bold;'>{nombre}</div>", unsafe_allow_html=True)
         with c3:
-            st.markdown("<div style='height: 120px; display: flex; align-items: center;'>", unsafe_allow_html=True)
+            st.markdown(f"<div style='display: flex; align-items: center; height: {TAMANO_FOTO}px;'>", unsafe_allow_html=True)
             if st.button("Sumar", key=nombre):
-                st.session_state.fase = 'final'
-                st.rerun()
+                st.session_state.fase = 'final'; st.rerun()
             st.markdown("</div>", unsafe_allow_html=True)
-        st.divider()
+        st.write("---")
 
-    # Logica del Timer
-    for t in range(30, -1, -1):
+    for t in range(35, -1, -1):
         with reloj_placeholder.container():
-            st.markdown(f"<div style='background-color: #fff2f2; padding: 10px; border-radius: 15px; border: 2px solid #e21b2c; text-align: center;'><p style='margin:0; font-size:12px; font-weight:bold;'>EL REPARTIDOR SALE EN:</p><h1 style='color: #e21b2c; margin:0;'>00:{t:02d}</h1></div>", unsafe_allow_html=True)
+            st.markdown(f"<div class='reloj-container'><p style='margin:0; font-size:12px; font-weight:bold;'>EL REPARTIDOR SALE EN:</p><p class='reloj-xl'>00:{t:02d}</p></div>", unsafe_allow_html=True)
         time.sleep(1)
-        if t == 0:
-            st.session_state.fase = 'final'
-            st.rerun()
+        if t == 0: st.session_state.fase = 'final'; st.rerun()
 
 elif st.session_state.fase == 'final':
     st.balloons()
     st.markdown("<h1 style='text-align: center; color: #e21b2c; margin-top: 50px;'>🛵 ¡Tu pedido está en camino!</h1>", unsafe_allow_html=True)
-    st.write("Gracias por participar en el experimento.")
     if st.button("Reiniciar"):
-        st.session_state.fase = 'perfil'
-        st.rerun()
-        
+        st.session_state.fase = 'cuestionario'; st.rerun()
 
 
 
