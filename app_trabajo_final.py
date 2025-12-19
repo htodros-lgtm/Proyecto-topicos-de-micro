@@ -6,16 +6,21 @@ import os
 # AJUSTES DE TAMAÑO (Tu configuración exacta)
 # ============================================================
 TAMANO_FOTO  = 100  
-TAMANO_RELOJ = 35 
+TAMANO_RELOJ = 35  
 # ============================================================
 
 st.set_page_config(page_title="Rappi Experimento", layout="centered")
+
+# --- INICIALIZACIÓN DE VARIABLES (Vital para evitar errores) ---
+if 'fase' not in st.session_state:
+    st.session_state.fase = 'cuestionario'
+if 'eligio_postre' not in st.session_state:
+    st.session_state.eligio_postre = False
 
 st.markdown(f"""
     <style>
     .main .block-container {{ padding-top: 5rem !important; }}
     
-    /* ESTILOS DE TU CÓDIGO DEFINITIVO */
     .fila-postre {{
         display: flex !important;
         flex-direction: row !important;
@@ -76,10 +81,6 @@ st.markdown(f"""
     </style>
     """, unsafe_allow_html=True)
 
-# Lógica de navegación del experimento
-if 'fase' not in st.session_state:
-    st.session_state.fase = 'cuestionario'
-
 # --- FASE 0: CUESTIONARIO ---
 if st.session_state.fase == 'cuestionario':
     st.title("📋 Perfil del Participante")
@@ -90,27 +91,27 @@ if st.session_state.fase == 'cuestionario':
             st.session_state.fase = 'instrucciones'
             st.rerun()
 
-# --- FASE 1: EXPLICACIÓN DE LA DINÁMICA ---
+# --- FASE 1: EXPLICACIÓN DE LA DINÁMICA (Tu texto adaptado) ---
 elif st.session_state.fase == 'instrucciones':
     st.title("Dinámica de la Simulación")
     st.markdown("""
     Estás por ingresar a un simulador de compra de una aplicación de delivery. 
-    Es sabado, termina la semana y no tenes ganas de cocinar por lo que abris tu app favorita de pedidos. 
-    Nada te tienta mas que esa milanesa con fritas asi que la compras, mientras esperas que confirmen tu pedido se te ofrece agragar al carrito un postre
+    Es sábado, termina la semana y no tenés ganas de cocinar por lo que abrís tu app favorita de pedidos. 
+    Nada te tienta más que esa milanesa con fritas así que la comprás. Mientras esperás que confirmen tu pedido, se te ofrece agregar al carrito un postre.
     
     **¿Cómo funciona?**
     1. Se te presentará un menú con un plato principal.
     2. Deberás realizar la compra como si estuvieras en una situación real.
     3. Una vez confirmada la orden, la aplicación te notificará el estado del pedido.
     
-    **Importante:** Por favor, interactúa con la interfaz de forma natural, como si realmente estuvieras pidiendo comida a domicilio.
+    **Importante:** Por favor, interactuá con la interfaz de forma natural, como si realmente estuvieras pidiendo comida a domicilio.
     """)
     
     if st.button("COMENZAR EXPERIMENTO", type="secondary"):
         st.session_state.fase = 'compra'
         st.rerun()
 
-# --- FASE 2: LA MILANESA (Tu código intacto) ---
+# --- FASE 2: LA MILANESA ---
 elif st.session_state.fase == 'compra':
     st.markdown("<h1 style='text-align: center;'>🍱 El Bodegón</h1>", unsafe_allow_html=True)
     if os.path.exists("milanesa.avif"):
@@ -122,11 +123,11 @@ elif st.session_state.fase == 'compra':
         st.session_state.fase = 'oferta'; st.rerun()
     st.markdown('</div>', unsafe_allow_html=True)
 
-# --- FASE 3: OFERTA RELÁMPAGO (Tu código intacto) ---
+# --- FASE 3: OFERTA RELÁMPAGO ---
 elif st.session_state.fase == 'oferta':
     st.markdown("<h1 style='text-align: center; margin:0;'>¡Pedido recibido!</h1>", unsafe_allow_html=True)
     st.markdown("<h4 style='text-align: center; color: #1e7e34; margin:0;'>✅ Se está preparando tu pedido</h4>", unsafe_allow_html=True)
-    st.markdown("<h4 style='text-align: center; color: #0a0a0a; margin:0;'> Podes agregar un postre a tu pedido antes de que el repartidor inicie su recorrido!</h4>", unsafe_allow_html=True)
+    st.markdown("<h4 style='text-align: center; color: #0a0a0a; margin:0;'> ¡Podés agregar un postre a tu pedido antes de que el repartidor inicie su recorrido!</h4>", unsafe_allow_html=True)
 
     reloj_placeholder = st.empty()
     st.write("")
@@ -148,7 +149,9 @@ elif st.session_state.fase == 'oferta':
         with c3:
             st.markdown(f"<div style='display: flex; align-items: center; height: {TAMANO_FOTO}px;'>", unsafe_allow_html=True)
             if st.button("Sumar", key=nombre):
-                st.session_state.fase = 'final'; st.rerun()
+                st.session_state.eligio_postre = True
+                st.session_state.fase = 'final'
+                st.rerun()
             st.markdown("</div>", unsafe_allow_html=True)
         st.write("---")
 
@@ -156,7 +159,10 @@ elif st.session_state.fase == 'oferta':
         with reloj_placeholder.container():
             st.markdown(f"<div class='reloj-container'><p style='margin:0; font-size:12px; font-weight:bold;'>EL REPARTIDOR SALE EN:</p><p class='reloj-xl'>00:{t:02d}</p></div>", unsafe_allow_html=True)
         time.sleep(1)
-        if t == 0: st.session_state.fase = 'final'; st.rerun()
+        if t == 0: 
+            st.session_state.eligio_postre = False
+            st.session_state.fase = 'final'
+            st.rerun()
 
 # --- FASE 4: PREGUNTAS DE ECONOMÍA CONDUCTUAL ---
 elif st.session_state.fase == 'final':
@@ -165,45 +171,35 @@ elif st.session_state.fase == 'final':
     with st.form("preguntas_finales"):
         if st.session_state.eligio_postre:
             st.success("¡Agregaste un postre a tu pedido!")
-            
-            # Opciones para los que SÍ compraron
-            opciones_si = [
-                "Porque me tentó", 
-                "Por el precio", 
-                "Aproveché para no tener que pedir algo más tarde",
-                "Otro motivo..."
-            ]
+            opciones_si = ["Porque me tentó", "Por el precio", "Aproveché para no tener que pedir algo más tarde", "Otro motivo..."]
             q1 = st.radio("¿Por qué agregaste el postre?", opciones_si)
             
-            # Si elige "Otro", se abre el campo de texto
-            razon_custom_si = ""
             if q1 == "Otro motivo...":
-                razon_custom_si = st.text_input("Por favor, contanos por qué:")
+                st.text_input("Por favor, contanos por qué:")
             
             st.write("---")
             q2 = st.radio("Si no hubiese sido ofrecido en ese momento, ¿lo hubieras pedido igual?", ["Sí", "No"])
         
         else:
             st.warning("No agregaste postre a tu pedido.")
-            
-            # Opciones para los que NO compraron
-            opciones_no = [
-                "No tenía ganas de comer dulce", 
-                "Me pareció muy caro", 
-                "Ya tenía un presupuesto fijo y no quería pasarme",
-                "Otras razones..."
-            ]
+            opciones_no = ["No tenía ganas de comer dulce", "Me pareció muy caro", "Ya tenía un presupuesto fijo y no quería pasarme", "Otras razones..."]
             q1 = st.radio("¿Por qué no elegiste el postre?", opciones_no)
             
-            # Si elige "Otras", se abre el campo de texto
-            razon_custom_no = ""
             if q1 == "Otras razones...":
-                razon_custom_no = st.text_input("Por favor, contanos por qué:")
+                st.text_input("Por favor, contanos por qué:")
 
         if st.form_submit_button("Finalizar Experimento"):
-            # Aquí podrías guardar razon_custom_si o razon_custom_no en tu base de datos
             st.session_state.fase = 'agradecimiento'
             st.rerun()
+
+elif st.session_state.fase == 'agradecimiento':
+    st.balloons()
+    st.markdown("<h1 style='text-align: center; color: #e21b2c; margin-top: 50px;'>🛵 ¡Tu pedido está en camino!</h1>", unsafe_allow_html=True)
+    st.markdown("<p style='text-align: center;'>Muchas gracias por participar en este experimento de Economía Conductual.</p>", unsafe_allow_html=True)
+    if st.button("Reiniciar Simulador"):
+        st.session_state.eligio_postre = False
+        st.session_state.fase = 'cuestionario'
+        st.rerun()
 
 
 
