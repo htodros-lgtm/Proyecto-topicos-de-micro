@@ -5,16 +5,16 @@ import pandas as pd
 from datetime import datetime
 from streamlit_gsheets import GSheetsConnection
 
-# CONFIGURACIÓN ESTÉTICA
+# AJUSTES ORIGINALES
 TAMANO_FOTO  = 100  
 TAMANO_RELOJ = 35 
 
 st.set_page_config(page_title="Rappi Experimento", layout="centered")
 
-# CONEXIÓN FORZADA A CUENTA DE SERVICIO
+# CONEXIÓN A TU GOOGLE SHEET
 conn = st.connection("gsheets", type=GSheetsConnection)
 
-# VARIABLES DE ESTADO
+# INICIALIZACIÓN
 if 'fase' not in st.session_state:
     st.session_state.fase = 'perfil'
 if 'carrito' not in st.session_state:
@@ -22,9 +22,9 @@ if 'carrito' not in st.session_state:
 if 'datos_usuario' not in st.session_state:
     st.session_state.datos_usuario = {}
 
-# TU CSS ORIGINAL
 st.markdown(f"""
     <style>
+    .main .block-container {{ padding-top: 5rem !important; }}
     .stButton>button {{ border-radius: 10px !important; background-color: #e21b2c !important; color: white !important; font-weight: bold !important; width: 100% !important; height: 2.8em !important; border: none !important; }}
     .btn-agregado button {{ background-color: #1e7e34 !important; }}
     .reloj-container {{ background-color: #fff2f2; padding: 10px; border-radius: 15px; border: 2px solid #e21b2c; text-align: center; margin: 15px 0; }}
@@ -46,34 +46,20 @@ if st.session_state.fase == 'perfil':
 # --- FASE 1: COMPRA MILANESA ---
 elif st.session_state.fase == 'compra_milanesa':
     st.image("milanesa.avif", use_container_width=True)
-    st.markdown("<h3 style='text-align: center;'>Milanesa con Papas Fritas - $14.200</h3>", unsafe_allow_html=True)
-    if st.button("🛒 COMPRAR AHORA"):
-        st.session_state.fase = 'armando_pedido'
-        st.rerun()
-
-# --- FASE 2: ARMANDO PEDIDO (TRANSICIÓN) ---
-elif st.session_state.fase == 'armando_pedido':
-    st.success("¡Pedido confirmado!")
-    st.markdown("### 🍱 Se está armando tu pedido...")
-    st.write("Podés agregar un postre antes de que salga el repartidor.")
-    if st.button("VER POSTRES DISPONIBLES"):
+    if st.button("🛒 COMPRAR MILANESA"):
         st.session_state.fase = 'oferta_reloj'
         st.session_state.timer_start = time.time()
         st.rerun()
 
-# --- FASE 3: OFERTA RELÁMPAGO CON RELOJ ---
+# --- FASE 2: EL REPARTIDOR SALE EN (OFERTA DIRECTA) ---
 elif st.session_state.fase == 'oferta_reloj':
+    st.success("¡Pedido confirmado! Se está armando tu pedido...")
     reloj_placeholder = st.empty()
     elapsed = time.time() - st.session_state.timer_start
     remaining = max(0, int(35 - elapsed))
 
     with reloj_placeholder.container():
-        st.markdown(f"""
-            <div class='reloj-container'>
-                <p style='margin:0; font-weight:bold;'>EL REPARTIDOR SALE EN:</p>
-                <p class='reloj-xl'>00:{remaining:02d}</p>
-            </div>
-        """, unsafe_allow_html=True)
+        st.markdown(f"<div class='reloj-container'><p style='margin:0; font-weight:bold;'>EL REPARTIDOR SALE EN:</p><p class='reloj-xl'>00:{remaining:02d}</p></div>", unsafe_allow_html=True)
 
     postres = [("chocotorta.png", "Chocotorta $2.000"), ("flan.jpg", "Flan Mixto $2.000"), ("tiramisu.png", "Tiramisú $2.000")]
     for archivo, nombre in postres:
@@ -97,19 +83,17 @@ elif st.session_state.fase == 'oferta_reloj':
         time.sleep(1)
         st.rerun()
     else:
-        st.session_state.fase = 'preguntas_finales'
+        st.session_state.fase = 'preguntas'
         st.rerun()
 
-# --- FASE 4: PREGUNTAS Y GUARDADO ---
-elif st.session_state.fase == 'preguntas_finales':
+# --- FASE 3: PREGUNTAS Y GUARDADO ---
+elif st.session_state.fase == 'preguntas':
     st.title("💡 Unas últimas preguntas")
-    with st.form("final_form"):
+    with st.form("final"):
         motivo = st.radio("¿Por qué tomaste esa decisión?", ["Tentación", "Precio", "Urgencia", "Otro"])
         hubiera = st.radio("¿Lo hubieras pedido sin la oferta?", ["Sí", "No"])
-        
-        if st.form_submit_button("Finalizar y Enviar"):
+        if st.form_submit_button("Finalizar"):
             try:
-                # CREAR DATA PARA EL SHEET
                 nueva_fila = pd.DataFrame([{
                     "Fecha": datetime.now().strftime("%d/%m/%Y %H:%M"),
                     "Sexo": st.session_state.datos_usuario['sexo'],
@@ -120,18 +104,14 @@ elif st.session_state.fase == 'preguntas_finales':
                     "Motivo": motivo,
                     "Sin_Oferta": hubiera
                 }])
-                
-                # ENVÍO USANDO LA CONEXIÓN DE CUENTA DE SERVICIO
-                conn.create(data=nueva_fila)
-                st.session_state.fase = 'agradecimiento'
+                conn.create(data=nueva_fila) # AQUÍ SE SINCRONIZA
+                st.session_state.fase = 'gracias'
                 st.rerun()
             except Exception as e:
-                st.error(f"Error técnico: {e}. Avisale al investigador.")
+                st.error(f"Error: {e}")
 
-elif st.session_state.fase == 'agradecimiento':
+elif st.session_state.fase == 'gracias':
     st.balloons()
     st.success("¡Tu pedido está en camino!")
-    st.write("Gracias por participar en este experimento.")
-    if st.button("Reiniciar"):
-        st.session_state.clear()
-        st.rerun()
+    st.write("Gracias por participar.")
+
