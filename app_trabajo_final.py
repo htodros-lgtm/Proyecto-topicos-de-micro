@@ -92,16 +92,18 @@ if st.session_state.fase == 'cuestionario':
 
 # --- FASE 1: EXPLICACIÓN DE LA DINÁMICA ---
 elif st.session_state.fase == 'instrucciones':
-    st.title("🎮 Dinámica de la Simulación")
+    st.title("Dinámica de la Simulación")
     st.markdown("""
     Estás por ingresar a un simulador de compra de una aplicación de delivery. 
+    Es sabado, termina la semana y no tenes ganas de cocinar por lo que abris tu app favorita de pedidos. 
+    Nada te tienta mas que esa milanesa con fritas asi que la compras, mientras esperas que confirmen tu pedido se te ofrece agragar al carrito un postre
     
     **¿Cómo funciona?**
     1. Se te presentará un menú con un plato principal.
     2. Deberás realizar la compra como si estuvieras en una situación real.
     3. Una vez confirmada la orden, la aplicación te notificará el estado del pedido.
     
-    **Importante:** Por favor, interactúa con la interfaz de forma natural, prestando atención a los mensajes y opciones que aparezcan en pantalla.
+    **Importante:** Por favor, interactúa con la interfaz de forma natural, como si realmente estuvieras pidiendo comida a domicilio.
     """)
     
     if st.button("COMENZAR EXPERIMENTO", type="secondary"):
@@ -161,6 +163,54 @@ elif st.session_state.fase == 'final':
     st.markdown("<h1 style='text-align: center; color: #e21b2c; margin-top: 50px;'>🛵 ¡Tu pedido está en camino!</h1>", unsafe_allow_html=True)
     if st.button("Reiniciar"):
         st.session_state.fase = 'cuestionario'; st.rerun()
+
+# --- FASE 4: PREGUNTAS DE ECONOMÍA CONDUCTUAL ---
+elif st.session_state.fase == 'final':
+    st.title("💡 Unas últimas preguntas")
+    
+    with st.form("preguntas_finales"):
+        if st.session_state.eligio_postre:
+            st.success("¡Agregaste un postre a tu pedido!")
+            
+            # Opciones para los que SÍ compraron
+            opciones_si = [
+                "Porque me tentó", 
+                "Por el precio", 
+                "Aproveché para no tener que pedir algo más tarde",
+                "Otro motivo..."
+            ]
+            q1 = st.radio("¿Por qué agregaste el postre?", opciones_si)
+            
+            # Si elige "Otro", se abre el campo de texto
+            razon_custom_si = ""
+            if q1 == "Otro motivo...":
+                razon_custom_si = st.text_input("Por favor, contanos por qué:")
+            
+            st.write("---")
+            q2 = st.radio("Si no hubiese sido ofrecido en ese momento, ¿lo hubieras pedido igual?", ["Sí", "No"])
+        
+        else:
+            st.warning("No agregaste postre a tu pedido.")
+            
+            # Opciones para los que NO compraron
+            opciones_no = [
+                "No tenía ganas de comer dulce", 
+                "Me pareció muy caro", 
+                "Ya tenía un presupuesto fijo y no quería pasarme",
+                "Otras razones..."
+            ]
+            q1 = st.radio("¿Por qué no elegiste el postre?", opciones_no)
+            
+            # Si elige "Otras", se abre el campo de texto
+            razon_custom_no = ""
+            if q1 == "Otras razones...":
+                razon_custom_no = st.text_input("Por favor, contanos por qué:")
+
+        if st.form_submit_button("Finalizar Experimento"):
+            # Aquí podrías guardar razon_custom_si o razon_custom_no en tu base de datos
+            st.session_state.fase = 'agradecimiento'
+            st.rerun()
+
 
 
 
