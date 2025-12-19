@@ -11,30 +11,20 @@ TAMANO_RELOJ = 35
 
 st.set_page_config(page_title="Rappi Experimento", layout="centered")
 
-# --- INICIALIZACIÓN DE VARIABLES ---
+# --- INICIALIZACIÓN DE VARIABLES (Evita el parpadeo y errores) ---
 if 'fase' not in st.session_state:
     st.session_state.fase = 'cuestionario'
+if 'carrito' not in st.session_state:
+    st.session_state.carrito = [] # Lista para manejar qué postres están sumados
 if 'eligio_postre' not in st.session_state:
     st.session_state.eligio_postre = False
-if 'postre_seleccionado' not in st.session_state:
-    st.session_state.postre_seleccionado = None
 
 st.markdown(f"""
     <style>
     .main .block-container {{ padding-top: 5rem !important; }}
     
-    .fila-postre {{
-        display: flex !important;
-        flex-direction: row !important;
-        align-items: center !important;
-        justify-content: space-between !important;
-        width: 100% !important;
-        margin-bottom: 15px;
-        border-bottom: 1px solid #eee;
-        padding-bottom: 10px;
-    }}
-
-    .stButton>button {{ 
+    /* BOTÓN SUMAR (ROJO) */
+    div.stButton > button {{
         border-radius: 10px !important;
         background-color: #e21b2c !important;
         color: white !important;
@@ -45,12 +35,8 @@ st.markdown(f"""
         font-size: 13px !important;
     }}
 
-    /* Estilo especial para cuando el postre está seleccionado */
-    .btn-seleccionado button {{
-        background-color: #1e7e34 !important;
-        content: "AGREGADO" !important;
-    }}
-
+    /* BOTÓN AGREGADO (VERDE) - Se aplica por lógica de Python */
+    
     .contenedor-milanesa {{
         display: flex;
         justify-content: center;
@@ -80,7 +66,7 @@ if st.session_state.fase == 'cuestionario':
             st.session_state.fase = 'instrucciones'
             st.rerun()
 
-# --- FASE 1: INSTRUCCIONES ---
+# --- FASE 1: INSTRUCCIONES (Tu texto) ---
 elif st.session_state.fase == 'instrucciones':
     st.title("Dinámica de la Simulación")
     st.markdown("""
@@ -101,20 +87,16 @@ elif st.session_state.fase == 'compra':
     
     st.markdown('<div class="contenedor-milanesa btn-milanesa">', unsafe_allow_html=True)
     if st.button("🛒 COMPRAR AHORA", key="buy_milan"):
-        st.session_state.fase = 'oferta'; st.rerun()
+        st.session_state.fase = 'oferta'
+        st.session_state.start_time = time.time()
+        st.rerun()
     st.markdown('</div>', unsafe_allow_html=True)
 
-# --- FASE 3: OFERTA RELÁMPAGO (INTERACTIVA) ---
+# --- FASE 3: OFERTA RELÁMPAGO (SIN PARPADEO) ---
 elif st.session_state.fase == 'oferta':
     st.markdown("<h1 style='text-align: center; margin:0;'>¡Pedido recibido!</h1>", unsafe_allow_html=True)
     st.markdown("<h4 style='text-align: center; color: #1e7e34; margin:0;'>✅ Se está preparando tu pedido</h4>", unsafe_allow_html=True)
     
-    # Mostrar qué postre está en el carrito actualmente
-    if st.session_state.postre_seleccionado:
-        st.info(f"Seleccionado: {st.session_state.postre_seleccionado}")
-    else:
-        st.write("¿Querés agregar un postre?")
-
     reloj_placeholder = st.empty()
     st.write("")
 
@@ -134,19 +116,21 @@ elif st.session_state.fase == 'oferta':
             st.markdown(f"<div style='display: flex; align-items: center; height: {TAMANO_FOTO}px; font-weight: bold;'>{nombre}</div>", unsafe_allow_html=True)
         with c3:
             st.markdown(f"<div style='display: flex; align-items: center; height: {TAMANO_FOTO}px;'>", unsafe_allow_html=True)
-            # El botón ahora no cambia de fase, solo cambia el estado
-            label_boton = "Sumado" if st.session_state.postre_seleccionado == nombre else "Sumar"
-            if st.button(label_boton, key=nombre):
-                st.session_state.eligio_postre = True
-                st.session_state.postre_seleccionado = nombre
-                st.rerun() # Recarga para mostrar el cambio pero sigue en esta fase
+            
+            # LÓGICA TOGGLE: SUMAR / AGREGADO
+            es_parte = nombre in st.session_state.carrito
+            txt_btn = "✅ Agregado" if es_parte else "Sumar"
+            
+            if st.button(txt_btn, key=nombre):
+                if es_parte:
+                    st.session_state.carrito.remove(nombre)
+                else:
+                    st.session_state.carrito.append(nombre)
+                # No hacemos rerun() aquí, dejamos que el bucle del tiempo lo haga
             st.markdown("</div>", unsafe_allow_html=True)
         st.write("---")
 
-    # Cronómetro que corre en segundo plano
-    if 'start_time' not in st.session_state:
-        st.session_state.start_time = time.time()
-    
+    # Cronómetro: Actualiza cada segundo
     elapsed = time.time() - st.session_state.start_time
     remaining = max(0, int(35 - elapsed))
 
@@ -154,42 +138,41 @@ elif st.session_state.fase == 'oferta':
         st.markdown(f"<div class='reloj-container'><p style='margin:0; font-size:12px; font-weight:bold;'>EL REPARTIDOR SALE EN:</p><p class='reloj-xl'>00:{remaining:02d}</p></div>", unsafe_allow_html=True)
     
     if remaining > 0:
-        time.sleep(1)
+        time.sleep(1) # Espera 1 segundo completo para no parpadear
         st.rerun()
     else:
-        # Solo cuando llega a cero pasa a la siguiente fase
+        st.session_state.eligio_postre = len(st.session_state.carrito) > 0
         st.session_state.fase = 'final'
         st.rerun()
 
 # --- FASE 4: PREGUNTAS FINALES ---
 elif st.session_state.fase == 'final':
     st.title("💡 Unas últimas preguntas")
-    with st.form("preguntas_finales"):
+    with st.form("final"):
         if st.session_state.eligio_postre:
-            st.success(f"Agregaste: {st.session_state.postre_seleccionado}")
-            q1 = st.radio("¿Por qué agregaste el postre?", ["Porque me tentó", "Por el precio", "Por el tiempo", "Otro motivo..."])
+            st.success(f"Sumaste al pedido: {', '.join(st.session_state.carrito)}")
+            q1 = st.radio("¿Por qué agregaste el postre?", ["Porque me tentó", "Por el precio", "Aproveché para no tener que pedir algo más tarde", "Otro motivo..."])
             if q1 == "Otro motivo...":
                 st.text_input("Contanos por qué:")
             st.radio("Si no hubiese sido ofrecido, ¿lo hubieras pedido igual?", ["Sí", "No"])
         else:
             st.warning("No agregaste postre.")
-            q1 = st.radio("¿Por qué no elegiste el postre?", ["No quería dulce", "Muy caro", "Presión del tiempo", "Otras razones..."])
+            q1 = st.radio("¿Por qué no elegiste el postre?", ["No tenía ganas de comer dulce", "Me pareció muy caro", "No me gusta que me apuren con el tiempo", "Otras razones..."])
             if q1 == "Otras razones...":
                 st.text_input("Contanos por qué:")
-
+        
         if st.form_submit_button("Finalizar"):
-            st.session_state.fase = 'agradecimiento'
+            st.session_state.fase = 'gracias'
             st.rerun()
 
-elif st.session_state.fase == 'agradecimiento':
+elif st.session_state.fase == 'gracias':
     st.balloons()
-    st.markdown("<h1 style='text-align: center; color: #e21b2c;'>🛵 ¡Pedido en camino!</h1>", unsafe_allow_html=True)
+    st.markdown("<h2 style='text-align: center;'>¡Gracias por participar!</h2>", unsafe_allow_html=True)
     if st.button("Reiniciar"):
-        st.session_state.eligio_postre = False
-        st.session_state.postre_seleccionado = None
         st.session_state.fase = 'cuestionario'
-        del st.session_state.start_time
+        st.session_state.carrito = []
         st.rerun()
+
 
 
 
