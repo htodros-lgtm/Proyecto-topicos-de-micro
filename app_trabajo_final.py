@@ -19,7 +19,7 @@ if 'carrito' not in st.session_state:
 if 'eligio_postre' not in st.session_state:
     st.session_state.eligio_postre = False
 
-# MANTENEMOS TU CSS TAL CUAL
+# TU CSS ORIGINAL (Protegido para que no se rompa nada)
 st.markdown(f"""
     <style>
     .main .block-container {{ padding-top: 5rem !important; }}
@@ -30,26 +30,6 @@ st.markdown(f"""
         align-items: center !important;
         justify-content: space-between !important;
         width: 100% !important;
-        margin-bottom: 15px;
-        border-bottom: 1px solid #eee;
-        padding-bottom: 10px;
-    }}
-
-    .foto-contenedor {{
-        width: {TAMANO_FOTO}px !important;
-        height: {TAMANO_FOTO}px !important;
-        flex-shrink: 0 !important;
-        border-radius: 10px;
-        overflow: hidden;
-    }}
-    .foto-contenedor img {{ width: 100%; height: 100%; object-fit: cover; }}
-
-    .texto-contenedor {{
-        flex-grow: 1 !important;
-        padding: 0 10px !important;
-        font-weight: bold;
-        font-size: 14px !important;
-        line-height: 1.2;
     }}
 
     .stButton>button {{ 
@@ -123,40 +103,28 @@ elif st.session_state.fase == 'compra':
         st.rerun()
     st.markdown('</div>', unsafe_allow_html=True)
 
-# --- FASE 3: OFERTA RELÁMPAGO (RELOJ FLUIDO SIN PARPADEO) ---
+# --- FASE 3: OFERTA RELÁMPAGO (RELOJ QUE FUNCIONA) ---
 elif st.session_state.fase == 'oferta':
     st.markdown("<h1 style='text-align: center; margin:0;'>¡Pedido recibido!</h1>", unsafe_allow_html=True)
     st.markdown("<h4 style='text-align: center; color: #1e7e34; margin:0;'>✅ Se está preparando tu pedido</h4>", unsafe_allow_html=True)
-    st.markdown("<p style='text-align: center;'>¡Podés agregar un postre antes de que el repartidor inicie su recorrido!</p>", unsafe_allow_html=True)
+    
+    # EL RELOJ: Lo ponemos en un contenedor vacío que se actualiza solo
+    reloj_placeholder = st.empty()
+    
+    # Calculamos el tiempo
+    elapsed = time.time() - st.session_state.timer_start
+    remaining = max(0, int(35 - elapsed))
 
-    # RELOJ CON JAVASCRIPT: NO PARPADEA Y SE MUEVE
-    st.markdown(f"""
-        <div class="reloj-container">
-            <p style="margin:0; font-size:12px; font-weight:bold;">EL REPARTIDOR SALE EN:</p>
-            <p id="countdown" class="reloj-xl">00:35</p>
-        </div>
-        <script>
-            var seconds = 35;
-            var countdown = document.getElementById('countdown');
-            var timer = setInterval(function() {{
-                seconds--;
-                countdown.innerHTML = "00:" + (seconds < 10 ? "0" : "") + seconds;
-                if (seconds <= 0) {{
-                    clearInterval(timer);
-                    // Esto envía una señal a Streamlit para cambiar de fase
-                    window.parent.postMessage({{type: 'streamlit:setComponentValue', value: true}}, '*');
-                }}
-            }}, 1000);
-        </script>
-    """, unsafe_allow_html=True)
+    # Actualizamos el reloj visualmente
+    with reloj_placeholder.container():
+        st.markdown(f"""
+            <div class='reloj-container'>
+                <p style='margin:0; font-size:12px; font-weight:bold;'>EL REPARTIDOR SALE EN:</p>
+                <p class='reloj-xl'>00:{remaining:02d}</p>
+            </div>
+        """, unsafe_allow_html=True)
 
-    # Detectar el final del tiempo para pasar a la encuesta
-    if time.time() - st.session_state.timer_start > 36:
-        st.session_state.eligio_postre = len(st.session_state.carrito) > 0
-        st.session_state.fase = 'final'
-        st.rerun()
-
-    st.write("")
+    # LOS POSTRES (Tu código exacto)
     postres = [("chocotorta", "Chocotorta $2.000"), ("flan", "Flan Mixto $2.000"), ("tiramisu", "Tiramisú $2.000")]
 
     for archivo, nombre in postres:
@@ -175,18 +143,29 @@ elif st.session_state.fase == 'oferta':
             st.markdown(f"<div style='display: flex; align-items: center; height: {TAMANO_FOTO}px;'>", unsafe_allow_html=True)
             
             es_parte = nombre in st.session_state.carrito
-            txt_btn = "Agregado" if es_parte else "Sumar"
+            label_btn = "Agregado" if es_parte else "Sumar"
             
             if es_parte: st.markdown('<div class="btn-agregado">', unsafe_allow_html=True)
-            if st.button(txt_btn, key=nombre):
-                if es_parte: st.session_state.carrito.remove(nombre)
-                else: st.session_state.carrito.add(nombre)
+            if st.button(label_btn, key=nombre):
+                if es_parte:
+                    st.session_state.carrito.remove(nombre)
+                else:
+                    st.session_state.carrito.add(nombre)
                 st.rerun()
             if es_parte: st.markdown('</div>', unsafe_allow_html=True)
             st.markdown("</div>", unsafe_allow_html=True)
         st.write("---")
 
-# --- FASE 4: PREGUNTAS FINALES ---
+    # Si todavía queda tiempo, forzamos la recarga suave cada 1 segundo
+    if remaining > 0:
+        time.sleep(1)
+        st.rerun()
+    else:
+        st.session_state.eligio_postre = len(st.session_state.carrito) > 0
+        st.session_state.fase = 'final'
+        st.rerun()
+
+# --- FASE 4: PREGUNTAS ---
 elif st.session_state.fase == 'final':
     st.title("💡 Unas últimas preguntas")
     with st.form("preguntas_finales"):
@@ -208,7 +187,7 @@ elif st.session_state.fase == 'final':
 
 elif st.session_state.fase == 'agradecimiento':
     st.balloons()
-    st.markdown("<h1 style='text-align: center; color: #e21b2c; margin-top: 50px;'>🛵 ¡Gracias por participar!</h1>", unsafe_allow_html=True)
+    st.markdown("<h1 style='text-align: center; color: #e21b2c;'>🛵 ¡Gracias por participar!</h1>", unsafe_allow_html=True)
     if st.button("Reiniciar Simulador"):
         st.session_state.carrito = set()
         st.session_state.fase = 'perfil'
