@@ -2,6 +2,7 @@ import streamlit as st
 import time
 import os
 import pandas as pd
+import random
 from datetime import datetime
 from streamlit_gsheets import GSheetsConnection
 
@@ -12,7 +13,7 @@ HOJA_GOOGLE  = "Respuestas"
 
 st.set_page_config(page_title="Topicos de Microeconomia", layout="centered")
 
-# CONEXIÓN (INTACTA)
+# CONEXIÓN
 conn = st.connection("gsheets", type=GSheetsConnection)
 
 # VARIABLES DE ESTADO
@@ -22,6 +23,8 @@ if 'carrito' not in st.session_state:
     st.session_state.carrito = set()
 if 'datos_usuario' not in st.session_state:
     st.session_state.datos_usuario = {}
+if 'grupo_asignado' not in st.session_state:
+    st.session_state.grupo_asignado = None
 
 # ESTILOS CSS
 st.markdown(f"""
@@ -29,10 +32,10 @@ st.markdown(f"""
     .stButton>button {{ border-radius: 10px !important; background-color: #e21b2c !important; color: white !important; font-weight: bold !important; width: 100% !important; height: 2.8em !important; border: none !important; }}
     .btn-agregado button {{ background-color: #1e7e34 !important; }}
     
-    /* MODIFICACIÓN: Caja más ajustada verticalmente */
+    /* Caja del reloj (Solo visible para grupo presión) */
     .reloj-container {{ 
         background-color: #fff2f2; 
-        padding: 2px 20px; /* (MODIFICADO: Menos relleno vertical para quitar aire) */
+        padding: 2px 20px;
         border-radius: 15px; 
         border: 2px solid #e21b2c; 
         text-align: center; 
@@ -40,13 +43,12 @@ st.markdown(f"""
         width: fit-content; 
     }}
     
-    /* MODIFICACIÓN: Quitamos el margen del número para que no empuje el borde abajo */
     .reloj-xl {{ 
         color: #e21b2c; 
         font-size: {TAMANO_RELOJ}px !important; 
         font-weight: 900; 
         line-height: 1.1; 
-        margin: 0 !important; /* ESTO QUITA EL ESPACIO INFERIOR */
+        margin: 0 !important;
         padding-bottom: 2px;
     }}
     
@@ -63,11 +65,15 @@ if st.session_state.fase == 'perfil':
         sexo = st.radio("Sexo:", ["Masculino", "Femenino", "Otro"])
         edad = st.selectbox("Edad:", ["Menos de 20", "20-40", "40-60", "Más de 60"])
         if st.form_submit_button("Continuar"):
+            # SORTEO: 50% ve reloj, 50% no ve reloj
+            grupo = random.choice(['Con_Presion', 'Sin_Presion'])
+            
+            st.session_state.grupo_asignado = grupo
             st.session_state.datos_usuario.update({'sexo': sexo, 'edad': edad})
             st.session_state.fase = 'Introducción' 
             st.rerun()
 
-# --- FASE NUEVA: INSTRUCCIONES ---
+# --- FASE INSTRUCCIONES ---
 elif st.session_state.fase == 'Introducción':
     st.title("Contexto del Experimento")
     st.info("""
@@ -104,31 +110,33 @@ elif st.session_state.fase == 'compra_milanesa':
             st.session_state.timer_start = time.time()
             st.rerun()
 
-# --- FASE 2: RELOJ + POSTRES ---
+# --- FASE 2: OFERTA POSTRES (TIEMPO FIJO 35s PARA TODOS) ---
 elif st.session_state.fase == 'oferta_reloj':
     st.markdown("## ¡Pedido confirmado! Se está armando tu pedido...")
-    st.markdown("<h4 style='text-align: center;'>Podés agregar un postre antes de que salga el repartidor 😋</h4>", unsafe_allow_html=True)
+    st.markdown("<h4 style='text-align: center;'>Podés agregar un postre antes de que salga el repartidor.</h4>", unsafe_allow_html=True)
     
-    reloj_placeholder = st.empty()
+    # CÁLCULO DE TIEMPO (IGUAL PARA TODOS)
     elapsed = time.time() - st.session_state.timer_start
     remaining = max(0, int(35 - elapsed))
 
-    with reloj_placeholder.container():
-        # Agregamos margin:0 al texto del título "EL REPARTIDOR..." también
-        st.markdown(f"<div class='reloj-container'><p style='margin:0; font-weight:bold; font-size:14px; padding-bottom:2px;'>EL REPARTIDOR SALE EN:</p><p class='reloj-xl'>00:{remaining:02d}</p></div>", unsafe_allow_html=True)
+    # SOLO MOSTRAMOS EL RELOJ SI ES DEL GRUPO 'Con_Presion'
+    if st.session_state.grupo_asignado == 'Con_Presion':
+        reloj_placeholder = st.empty()
+        with reloj_placeholder.container():
+            st.markdown(f"<div class='reloj-container'><p style='margin:0; font-weight:bold; font-size:14px; padding-bottom:2px;'>EL REPARTIDOR SALE EN:</p><p class='reloj-xl'>00:{remaining:02d}</p></div>", unsafe_allow_html=True)
+    else:
+        # GRUPO SIN PRESIÓN: No ven nada (o un mensaje tranquilo) pero el tiempo corre igual
+        st.write("") # Espacio vacío donde iría el reloj
 
     # Lista de postres
     postres = [("C.png", "Chocotorta $1.900"), ("F.png", "Flan Mixto $1.900"), ("T.png", "Tiramisú $1.900")]
     
     for archivo, nombre in postres:
         c1, c2, c3 = st.columns([0.03, 0.04, 0.1], gap="small")
-        
         with c1: 
             if os.path.exists(archivo): st.image(archivo, width=TAMANO_FOTO)
-        
         with c2: 
             st.markdown(f"<div style='padding-top: 15px; font-size: 18px;'><b>{nombre}</b></div>", unsafe_allow_html=True)
-        
         with c3:
             st.markdown("<div style='padding-top: 10px;'>", unsafe_allow_html=True) 
             es_parte = nombre in st.session_state.carrito
@@ -143,13 +151,14 @@ elif st.session_state.fase == 'oferta_reloj':
             
             if es_parte: st.markdown('</div>', unsafe_allow_html=True)
             st.markdown("</div>", unsafe_allow_html=True)
-        
         st.markdown("---") 
 
+    # LÓGICA DE AVANCE AUTOMÁTICO (PARA AMBOS GRUPOS)
     if remaining > 0:
         time.sleep(1)
         st.rerun()
     else:
+        # Cuando se acaban los 35s, ambos grupos pasan automáticamente
         st.session_state.fase = 'preguntas'
         st.rerun()
 
@@ -174,6 +183,7 @@ elif st.session_state.fase == 'preguntas':
                     "Fecha": datetime.now().strftime("%d/%m/%Y %H:%M"),
                     "Sexo": st.session_state.datos_usuario['sexo'],
                     "Edad": st.session_state.datos_usuario['edad'],
+                    "Grupo": st.session_state.grupo_asignado,  # GUARDAMOS EL GRUPO (Recordá tener la columna en Excel)
                     "Eligio": "SI" if compro_postre else "NO",
                     "Postres": ", ".join(st.session_state.carrito),
                     "Tiempo_Seg": st.session_state.datos_usuario.get('t_reaccion', "N/A"),
