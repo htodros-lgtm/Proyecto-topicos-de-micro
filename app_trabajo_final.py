@@ -107,7 +107,7 @@ elif st.session_state.fase == 'compra_milanesa':
 # --- FASE 2: RELOJ + POSTRES ---
 elif st.session_state.fase == 'oferta_reloj':
     st.markdown("## ¡Pedido confirmado! Se está armando tu pedido...")
-    st.markdown("<h4 style='text-align: center;'>Podés agregar un postre antes de que salga el repartidor.</h4>", unsafe_allow_html=True)
+    st.markdown("<h4 style='text-align: center;'>Podés agregar un postre antes de que salga el repartidor 😋</h4>", unsafe_allow_html=True)
     
     reloj_placeholder = st.empty()
     elapsed = time.time() - st.session_state.timer_start
@@ -199,6 +199,7 @@ elif st.session_state.fase == 'gracias':
     st.balloons()
     st.success("¡Tu pedido está en camino!")
     st.write("Gracias por participar.")
+
 
 
 
