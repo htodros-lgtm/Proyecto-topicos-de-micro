@@ -7,7 +7,7 @@ from streamlit_gsheets import GSheetsConnection
 
 # --- CONFIGURACIÓN ---
 TAMANO_FOTO  = 100  
-TAMANO_RELOJ = 25  # (MODIFICADO: Se achicó de 35 a 25)
+TAMANO_RELOJ = 25  
 HOJA_GOOGLE  = "Respuestas" 
 
 st.set_page_config(page_title="Topicos de Microeconomia", layout="centered")
@@ -29,10 +29,10 @@ st.markdown(f"""
     .stButton>button {{ border-radius: 10px !important; background-color: #e21b2c !important; color: white !important; font-weight: bold !important; width: 100% !important; height: 2.8em !important; border: none !important; }}
     .btn-agregado button {{ background-color: #1e7e34 !important; }}
     
-    /* MODIFICACIÓN: Recuadro del reloj más ajustado */
+    /* MODIFICACIÓN: Caja más ajustada verticalmente */
     .reloj-container {{ 
         background-color: #fff2f2; 
-        padding: 5px 20px; /* (MODIFICADO: Menos relleno para achicar la caja) */
+        padding: 2px 20px; /* (MODIFICADO: Menos relleno vertical para quitar aire) */
         border-radius: 15px; 
         border: 2px solid #e21b2c; 
         text-align: center; 
@@ -40,7 +40,15 @@ st.markdown(f"""
         width: fit-content; 
     }}
     
-    .reloj-xl {{ color: #e21b2c; font-size: {TAMANO_RELOJ}px !important; font-weight: 900; line-height: 1; }}
+    /* MODIFICACIÓN: Quitamos el margen del número para que no empuje el borde abajo */
+    .reloj-xl {{ 
+        color: #e21b2c; 
+        font-size: {TAMANO_RELOJ}px !important; 
+        font-weight: 900; 
+        line-height: 1.1; 
+        margin: 0 !important; /* ESTO QUITA EL ESPACIO INFERIOR */
+        padding-bottom: 2px;
+    }}
     
     [data-testid="stVerticalBlock"] > [style*="flex-direction: column;"] > [data-testid="stVerticalBlock"] {{
         justify-content: center;
@@ -56,7 +64,6 @@ if st.session_state.fase == 'perfil':
         edad = st.selectbox("Edad:", ["Menos de 20", "20-40", "40-60", "Más de 60"])
         if st.form_submit_button("Continuar"):
             st.session_state.datos_usuario.update({'sexo': sexo, 'edad': edad})
-            # Ahora vamos a las instrucciones
             st.session_state.fase = 'Introducción' 
             st.rerun()
 
@@ -79,19 +86,16 @@ elif st.session_state.fase == 'Introducción':
 
 # --- FASE 1: COMPRA MILANESA ---
 elif st.session_state.fase == 'compra_milanesa':
-    # TITULO AGREGADO
     st.markdown("## 🍽️ Bodegón 'El Buen Gusto'")
     
     if os.path.exists("milanesa.avif"):
         st.image("milanesa.avif", use_container_width=True)
     
-    st.write("") # Espacio
+    st.write("") 
     
-    # Columnas para poner precio y botón juntos
     col_texto, col_boton = st.columns([1.5, 1])
     
     with col_texto:
-        # PRECIO AGREGADO
         st.markdown("### Milanesa con fritas - **$18.000**")
     
     with col_boton:
@@ -110,28 +114,26 @@ elif st.session_state.fase == 'oferta_reloj':
     remaining = max(0, int(35 - elapsed))
 
     with reloj_placeholder.container():
-        st.markdown(f"<div class='reloj-container'><p style='margin:0; font-weight:bold;'>EL REPARTIDOR SALE EN:</p><p class='reloj-xl'>00:{remaining:02d}</p></div>", unsafe_allow_html=True)
+        # Agregamos margin:0 al texto del título "EL REPARTIDOR..." también
+        st.markdown(f"<div class='reloj-container'><p style='margin:0; font-weight:bold; font-size:14px; padding-bottom:2px;'>EL REPARTIDOR SALE EN:</p><p class='reloj-xl'>00:{remaining:02d}</p></div>", unsafe_allow_html=True)
 
     # Lista de postres
     postres = [("chocotorta.png", "Chocotorta $1.900"), ("flan.jpg", "Flan Mixto $1.900"), ("tiramisu.png", "Tiramisú $1.900")]
     
     for archivo, nombre in postres:
-        # AJUSTE DE COLUMNAS
         c1, c2, c3 = st.columns([0.03, 0.04, 0.1], gap="small")
         
         with c1: 
             if os.path.exists(archivo): st.image(archivo, width=TAMANO_FOTO)
         
         with c2: 
-            # Usamos un pequeño hack de markdown para bajar el texto y centrarlo visualmente con la foto
             st.markdown(f"<div style='padding-top: 15px; font-size: 18px;'><b>{nombre}</b></div>", unsafe_allow_html=True)
         
         with c3:
-            st.markdown("<div style='padding-top: 10px;'>", unsafe_allow_html=True) # Bajamos un poco el botón
+            st.markdown("<div style='padding-top: 10px;'>", unsafe_allow_html=True) 
             es_parte = nombre in st.session_state.carrito
             if es_parte: st.markdown('<div class="btn-agregado">', unsafe_allow_html=True)
             
-            # Botón
             if st.button("Agregado" if es_parte else "Sumar", key=nombre):
                 if 't_reaccion' not in st.session_state.datos_usuario:
                     st.session_state.datos_usuario['t_reaccion'] = round(elapsed, 2)
@@ -142,7 +144,7 @@ elif st.session_state.fase == 'oferta_reloj':
             if es_parte: st.markdown('</div>', unsafe_allow_html=True)
             st.markdown("</div>", unsafe_allow_html=True)
         
-        st.markdown("---") # Línea divisoria entre postres para prolijidad
+        st.markdown("---") 
 
     if remaining > 0:
         time.sleep(1)
@@ -151,7 +153,7 @@ elif st.session_state.fase == 'oferta_reloj':
         st.session_state.fase = 'preguntas'
         st.rerun()
 
-# --- FASE 3: PREGUNTAS Y GUARDADO (LÓGICA INTACTA) ---
+# --- FASE 3: PREGUNTAS Y GUARDADO ---
 elif st.session_state.fase == 'preguntas':
     st.title("💡 Unas últimas preguntas")
     compro_postre = len(st.session_state.carrito) > 0
@@ -168,7 +170,6 @@ elif st.session_state.fase == 'preguntas':
 
         if st.form_submit_button("Finalizar"):
             try:
-                # 1. Creamos la fila nueva
                 nueva_fila = pd.DataFrame([{
                     "Fecha": datetime.now().strftime("%d/%m/%Y %H:%M"),
                     "Sexo": st.session_state.datos_usuario['sexo'],
@@ -180,7 +181,6 @@ elif st.session_state.fase == 'preguntas':
                     "Sin_Oferta": hubiera
                 }])
                 
-                # 2. Leemos existente (Lógica Acumulativa)
                 try:
                     df_existente = conn.read(worksheet=HOJA_GOOGLE, ttl=0)
                     df_existente = df_existente.dropna(how='all')
@@ -188,7 +188,6 @@ elif st.session_state.fase == 'preguntas':
                 except Exception:
                     df_final = nueva_fila
 
-                # 3. Actualizamos
                 conn.update(worksheet=HOJA_GOOGLE, data=df_final)
                 
                 st.session_state.fase = 'gracias'
