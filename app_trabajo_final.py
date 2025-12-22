@@ -118,7 +118,7 @@ elif st.session_state.fase == 'oferta_reloj':
         st.markdown(f"<div class='reloj-container'><p style='margin:0; font-weight:bold; font-size:14px; padding-bottom:2px;'>EL REPARTIDOR SALE EN:</p><p class='reloj-xl'>00:{remaining:02d}</p></div>", unsafe_allow_html=True)
 
     # Lista de postres
-    postres = [("chocotorta.png", "Chocotorta $1.900"), ("flan.jpg", "Flan Mixto $1.900"), ("tiramisu.png", "Tiramisú $1.900")]
+    postres = [("C.png", "Chocotorta $1.900"), ("F.png", "Flan Mixto $1.900"), ("T.png", "Tiramisú $1.900")]
     
     for archivo, nombre in postres:
         c1, c2, c3 = st.columns([0.03, 0.04, 0.1], gap="small")
@@ -199,6 +199,7 @@ elif st.session_state.fase == 'gracias':
     st.balloons()
     st.success("¡Tu pedido está en camino!")
     st.write("Gracias por participar.")
+
 
 
 
