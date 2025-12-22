@@ -46,7 +46,7 @@ if st.session_state.fase == 'perfil':
         if st.form_submit_button("Continuar"):
             st.session_state.datos_usuario.update({'sexo': sexo, 'edad': edad})
             # Ahora vamos a las instrucciones
-            st.session_state.fase = 'instrucciones' 
+            st.session_state.fase = 'Introducción' 
             st.rerun()
 
 # --- FASE NUEVA: INSTRUCCIONES ---
@@ -191,6 +191,7 @@ elif st.session_state.fase == 'gracias':
     st.balloons()
     st.success("¡Tu pedido está en camino!")
     st.write("Gracias por participar.")
+
 
 
 
