@@ -84,6 +84,8 @@ elif st.session_state.fase == 'Introducción':
     Abrís la app y tras meditarlo un rato -más largo de lo que uno pensaría- te decidis por pedirte esa...
     
     A continuación vas a ver el menú. Actuá con naturalidad como si fuera una compra real.
+    Por favor no salgas en ningun momento de la pagina. Luego de la simulación se te haran dos preguntas, tras tocar el boton "finalizar" espera a que aparezcan unos globos (eso nos indica que tus respuestas han sido guardadas)
+    Desde ya gracias por participar!
     """)
     st.write("")
     if st.button("Ir al experimento"):
@@ -119,8 +121,8 @@ elif st.session_state.fase == 'oferta_reloj':
     elapsed = time.time() - st.session_state.timer_start
     remaining = max(0, int(35 - elapsed))
 
-    # SOLO MOSTRAMOS EL RELOJ SI ES DEL GRUPO 'Con_Presion'
-    if st.session_state.grupo_asignado == 'Con_Presion':
+    # SOLO MOSTRAMOS EL RELOJ SI ES DEL GRUPO 'Con_Reloj'
+    if st.session_state.grupo_asignado == 'Con_Reloj':
         reloj_placeholder = st.empty()
         with reloj_placeholder.container():
             st.markdown(f"<div class='reloj-container'><p style='margin:0; font-weight:bold; font-size:14px; padding-bottom:2px;'>EL REPARTIDOR SALE EN:</p><p class='reloj-xl'>00:{remaining:02d}</p></div>", unsafe_allow_html=True)
@@ -162,48 +164,72 @@ elif st.session_state.fase == 'oferta_reloj':
         st.session_state.fase = 'preguntas'
         st.rerun()
 
-# --- FASE 3: PREGUNTAS Y GUARDADO ---
+# --- FASE 3: PREGUNTAS (MODIFICADA: LÓGICA DE "OTRO") ---
 elif st.session_state.fase == 'preguntas':
     st.title("💡 Unas últimas preguntas")
     compro_postre = len(st.session_state.carrito) > 0
     
-    with st.form("final"):
-        if compro_postre:
-            st.info("Vimos que **AGREGASTE** postre.")
-            motivo = st.radio("¿Qué influyó más en tu decisión?", ["La oferta/precio", "La urgencia del reloj", "Tenía antojo", "Otro"])
-            hubiera = st.radio("¿Lo hubieras comprado a precio normal ($4000)?", ["Sí", "No"])
+    # IMPORTANTE: Aquí quitamos el 'with st.form' para permitir que el campo aparezca al instante
+    
+    if compro_postre:
+        st.info("Vimos que **AGREGASTE** postre.")
+        
+        # Guardamos la selección inicial
+        seleccion_motivo = st.radio("Comentanos por que lo has agregado", ["Para aprovechar la oferta", "Me dio antojo", "Otro"])
+        
+        # LOGICA PARA "OTRO":
+        if seleccion_motivo == "Otro":
+            texto_otro = st.text_input("Por favor, escribí el motivo:", placeholder="Escribí acá...")
+            # Si escriben algo, guardamos eso. Si no, queda como "Otro"
+            motivo_final = f"Otro: {texto_otro}" if texto_otro else "Otro"
         else:
-            st.info("Vimos que **NO** agregaste postre.")
-            motivo = st.radio("¿Por qué decidiste no comprar?", ["Muy caro", "No quería postre", "Me puso nervioso el tiempo", "Otro"])
-            hubiera = st.radio("¿Si tuvieras más tiempo para pensar, lo comprabas?", ["Sí", "No"])
+            motivo_final = seleccion_motivo
+            
+        hubiera = st.radio("¿Lo hubieras pedido si no te lo ofrecian al terminar tu compra?", ["Sí", "No"])
+        
+    else:
+        st.info("Vimos que **NO** agregaste postre.")
+        
+        seleccion_motivo = st.radio("¿Por qué decidiste no comprar?", ["Muy caro", "No quería postre", "Otro"])
+        
+        # LOGICA PARA "OTRO":
+        if seleccion_motivo == "Otro":
+            texto_otro = st.text_input("Por favor, escribí el motivo:", placeholder="Escribí acá...")
+            motivo_final = f"Otro: {texto_otro}" if texto_otro else "Otro"
+        else:
+            motivo_final = seleccion_motivo
+            
+        hubiera = st.radio("¿Lo hubieras pedido si no te lo ofrecian al terminar tu compra?", ["Sí", "No"])
 
-        if st.form_submit_button("Finalizar"):
+    st.write("") # Espacio
+    # Ahora usamos un botón normal (fuera del form) para guardar
+    if st.button("Finalizar"):
+        try:
+            nueva_fila = pd.DataFrame([{
+                "Fecha": datetime.now().strftime("%d/%m/%Y %H:%M"),
+                "Sexo": st.session_state.datos_usuario['sexo'],
+                "Edad": st.session_state.datos_usuario['edad'],
+                "Grupo": st.session_state.grupo_asignado,  
+                "Eligio": "SI" if compro_postre else "NO",
+                "Postres": ", ".join(st.session_state.carrito),
+                "Tiempo_Seg": st.session_state.datos_usuario.get('t_reaccion', "N/A"),
+                "Motivo": motivo_final, # Usamos la variable procesada
+                "Sin_Oferta": hubiera
+            }])
+            
             try:
-                nueva_fila = pd.DataFrame([{
-                    "Fecha": datetime.now().strftime("%d/%m/%Y %H:%M"),
-                    "Sexo": st.session_state.datos_usuario['sexo'],
-                    "Edad": st.session_state.datos_usuario['edad'],
-                    "Grupo": st.session_state.grupo_asignado,  # GUARDAMOS EL GRUPO (Recordá tener la columna en Excel)
-                    "Eligio": "SI" if compro_postre else "NO",
-                    "Postres": ", ".join(st.session_state.carrito),
-                    "Tiempo_Seg": st.session_state.datos_usuario.get('t_reaccion', "N/A"),
-                    "Motivo": motivo,
-                    "Sin_Oferta": hubiera
-                }])
-                
-                try:
-                    df_existente = conn.read(worksheet=HOJA_GOOGLE, ttl=0)
-                    df_existente = df_existente.dropna(how='all')
-                    df_final = pd.concat([df_existente, nueva_fila], ignore_index=True)
-                except Exception:
-                    df_final = nueva_fila
+                df_existente = conn.read(worksheet=HOJA_GOOGLE, ttl=0)
+                df_existente = df_existente.dropna(how='all')
+                df_final = pd.concat([df_existente, nueva_fila], ignore_index=True)
+            except Exception:
+                df_final = nueva_fila
 
-                conn.update(worksheet=HOJA_GOOGLE, data=df_final)
-                
-                st.session_state.fase = 'gracias'
-                st.rerun()
-            except Exception as e:
-                st.error(f"Error al guardar: {e}")
+            conn.update(worksheet=HOJA_GOOGLE, data=df_final)
+            
+            st.session_state.fase = 'gracias'
+            st.rerun()
+        except Exception as e:
+            st.error(f"Error al guardar: {e}")
 
 elif st.session_state.fase == 'gracias':
     st.balloons()
