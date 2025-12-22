@@ -107,7 +107,7 @@ elif st.session_state.fase == 'oferta_reloj':
 
     for archivo, nombre in postres:
         # AJUSTE DE COLUMNAS: Achiqué la primera y ajusté las otras para que queden más pegadas
-        c1, c2, c3 = st.columns([0.2, 0, 0.2], gap="small")
+        c1, c2, c3 = st.columns([0.2, 0.0001, 0.2], gap="small")
         
         with c1: 
             if os.path.exists(archivo): st.image(archivo, width=TAMANO_FOTO)
@@ -190,6 +190,7 @@ elif st.session_state.fase == 'gracias':
     st.balloons()
     st.success("¡Tu pedido está en camino!")
     st.write("Gracias por participar.")
+
 
 
 
