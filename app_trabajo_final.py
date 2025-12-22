@@ -7,7 +7,7 @@ from streamlit_gsheets import GSheetsConnection
 
 # --- CONFIGURACIÓN ---
 TAMANO_FOTO  = 100  
-TAMANO_RELOJ = 35 
+TAMANO_RELOJ = 25  # (MODIFICADO: Se achicó de 35 a 25)
 HOJA_GOOGLE  = "Respuestas" 
 
 st.set_page_config(page_title="Topicos de Microeconomia", layout="centered")
@@ -29,15 +29,15 @@ st.markdown(f"""
     .stButton>button {{ border-radius: 10px !important; background-color: #e21b2c !important; color: white !important; font-weight: bold !important; width: 100% !important; height: 2.8em !important; border: none !important; }}
     .btn-agregado button {{ background-color: #1e7e34 !important; }}
     
-    /* MODIFICACIÓN: Recuadro del reloj ajustado al contenido */
+    /* MODIFICACIÓN: Recuadro del reloj más ajustado */
     .reloj-container {{ 
         background-color: #fff2f2; 
-        padding: 10px 30px; /* Un poco más de aire a los costados */
+        padding: 5px 20px; /* (MODIFICADO: Menos relleno para achicar la caja) */
         border-radius: 15px; 
         border: 2px solid #e21b2c; 
         text-align: center; 
-        margin: 15px auto; /* Centra el bloque horizontalmente */
-        width: fit-content; /* El ancho se adapta al contenido (el reloj) */
+        margin: 10px auto; 
+        width: fit-content; 
     }}
     
     .reloj-xl {{ color: #e21b2c; font-size: {TAMANO_RELOJ}px !important; font-weight: 900; line-height: 1; }}
@@ -115,10 +115,8 @@ elif st.session_state.fase == 'oferta_reloj':
     # Lista de postres
     postres = [("chocotorta.png", "Chocotorta $1.900"), ("flan.jpg", "Flan Mixto $1.900"), ("tiramisu.png", "Tiramisú $1.900")]
     
-
-
     for archivo, nombre in postres:
-        # AJUSTE DE COLUMNAS: Achiqué la primera y ajusté las otras para que queden más pegadas
+        # AJUSTE DE COLUMNAS
         c1, c2, c3 = st.columns([0.03, 0.04, 0.1], gap="small")
         
         with c1: 
@@ -202,6 +200,7 @@ elif st.session_state.fase == 'gracias':
     st.balloons()
     st.success("¡Tu pedido está en camino!")
     st.write("Gracias por participar.")
+
 
 
 
