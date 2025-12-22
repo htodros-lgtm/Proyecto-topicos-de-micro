@@ -28,9 +28,20 @@ st.markdown(f"""
     <style>
     .stButton>button {{ border-radius: 10px !important; background-color: #e21b2c !important; color: white !important; font-weight: bold !important; width: 100% !important; height: 2.8em !important; border: none !important; }}
     .btn-agregado button {{ background-color: #1e7e34 !important; }}
-    .reloj-container {{ background-color: #fff2f2; padding: 10px; border-radius: 15px; border: 2px solid #e21b2c; text-align: center; margin: 15px 0; }}
+    
+    /* MODIFICACIÓN: Recuadro del reloj ajustado al contenido */
+    .reloj-container {{ 
+        background-color: #fff2f2; 
+        padding: 10px 30px; /* Un poco más de aire a los costados */
+        border-radius: 15px; 
+        border: 2px solid #e21b2c; 
+        text-align: center; 
+        margin: 15px auto; /* Centra el bloque horizontalmente */
+        width: fit-content; /* El ancho se adapta al contenido (el reloj) */
+    }}
+    
     .reloj-xl {{ color: #e21b2c; font-size: {TAMANO_RELOJ}px !important; font-weight: 900; line-height: 1; }}
-    /* Ajuste para centrar verticalmente el contenido de las columnas de postres */
+    
     [data-testid="stVerticalBlock"] > [style*="flex-direction: column;"] > [data-testid="stVerticalBlock"] {{
         justify-content: center;
     }}
@@ -92,7 +103,7 @@ elif st.session_state.fase == 'compra_milanesa':
 # --- FASE 2: RELOJ + POSTRES ---
 elif st.session_state.fase == 'oferta_reloj':
     st.markdown("## ¡Pedido confirmado! Se está armando tu pedido...")
-    st.write("Podés agregar un postre antes de que salga el repartidor.")
+    st.markdown("<h4 style='text-align: center;'>Podés agregar un postre antes de que salga el repartidor.</h4>", unsafe_allow_html=True)
     
     reloj_placeholder = st.empty()
     elapsed = time.time() - st.session_state.timer_start
@@ -191,6 +202,7 @@ elif st.session_state.fase == 'gracias':
     st.balloons()
     st.success("¡Tu pedido está en camino!")
     st.write("Gracias por participar.")
+
 
 
 
