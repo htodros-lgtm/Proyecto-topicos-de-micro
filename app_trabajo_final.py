@@ -10,7 +10,7 @@ TAMANO_FOTO  = 100
 TAMANO_RELOJ = 35 
 HOJA_GOOGLE  = "Respuestas" 
 
-st.set_page_config(page_title="Rappi Experimento", layout="centered")
+st.set_page_config(page_title="Topicos de Microeconomia", layout="centered")
 
 # CONEXIÓN (INTACTA)
 conn = st.connection("gsheets", type=GSheetsConnection)
@@ -39,24 +39,25 @@ st.markdown(f"""
 
 # --- FASE 0: PERFIL ---
 if st.session_state.fase == 'perfil':
-    st.markdown("## 📋 Datos del Participante")
+    st.markdown("## Datos generales")
     with st.form("perfil"):
         sexo = st.radio("Sexo:", ["Masculino", "Femenino", "Otro"])
-        edad = st.selectbox("Edad:", ["Menos de 20", "20-30", "30-50", "Más de 50"])
+        edad = st.selectbox("Edad:", ["Menos de 20", "20-40", "40-60", "Más de 60"])
         if st.form_submit_button("Continuar"):
             st.session_state.datos_usuario.update({'sexo': sexo, 'edad': edad})
-            # CAMBIO: Ahora vamos a las instrucciones en lugar de directo a la compra
+            # Ahora vamos a las instrucciones
             st.session_state.fase = 'instrucciones' 
             st.rerun()
 
 # --- FASE NUEVA: INSTRUCCIONES ---
-elif st.session_state.fase == 'instrucciones':
+elif st.session_state.fase == 'Introducción':
     st.title("Contexto del Experimento")
     st.info("""
     📢 **Imaginá la siguiente situación:**
     
-    Estás en tu casa, es hora de almorzar y tenés mucha hambre. 
-    Abrís la app para pedir comida y encontrás tu bodegón favorito.
+    21hs estás en tu casa, fue un largo dia de trabajo y no tenes ganas de cocinar. 
+    Por suerte existen las aplicaciones de delivery que te permiten pedir comida desde la comodidad de tu cama.
+    Abrís la app y tras meditarlo un rato -más largo de lo que uno pensaría- te decidis por pedirte esa...
     
     A continuación vas a ver el menú. Actuá con naturalidad como si fuera una compra real.
     """)
@@ -83,14 +84,14 @@ elif st.session_state.fase == 'compra_milanesa':
         st.markdown("### Milanesa con fritas - **$18.000**")
     
     with col_boton:
-        if st.button("🛒 COMPRAR"):
+        if st.button("🛒 PAGAR"):
             st.session_state.fase = 'oferta_reloj'
             st.session_state.timer_start = time.time()
             st.rerun()
 
 # --- FASE 2: RELOJ + POSTRES ---
 elif st.session_state.fase == 'oferta_reloj':
-    st.success("¡Pedido confirmado! Se está armando tu pedido...")
+    st.markdown("##¡Pedido confirmado! Se está armando tu pedido...")
     st.write("Podés agregar un postre antes de que salga el repartidor.")
     
     reloj_placeholder = st.empty()
@@ -101,9 +102,9 @@ elif st.session_state.fase == 'oferta_reloj':
         st.markdown(f"<div class='reloj-container'><p style='margin:0; font-weight:bold;'>EL REPARTIDOR SALE EN:</p><p class='reloj-xl'>00:{remaining:02d}</p></div>", unsafe_allow_html=True)
 
     # Lista de postres
-    postres = [("chocotorta.png", "Chocotorta $2.000"), ("flan.jpg", "Flan Mixto $2.000"), ("tiramisu.png", "Tiramisú $2.000")]
+    postres = [("chocotorta.png", "Chocotorta $1.900"), ("flan.jpg", "Flan Mixto $1.900"), ("tiramisu.png", "Tiramisú $1.900")]
     
-    st.write("---") # Separador visual
+
 
     for archivo, nombre in postres:
         # AJUSTE DE COLUMNAS: Achiqué la primera y ajusté las otras para que queden más pegadas
@@ -190,6 +191,7 @@ elif st.session_state.fase == 'gracias':
     st.balloons()
     st.success("¡Tu pedido está en camino!")
     st.write("Gracias por participar.")
+
 
 
 
