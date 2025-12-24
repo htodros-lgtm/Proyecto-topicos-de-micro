@@ -130,7 +130,7 @@ elif st.session_state.fase == 'oferta_reloj':
         st.write("") 
 
     # Lista de postres
-    postres = [("C.png", "Chocotorta $1.900"), ("F.png", "Flan Mixto $1.900"), ("T.png", "Tiramisú $1.900")]
+    postres = [("C.png", "Chocotorta $1.600"), ("F.png", "Flan Mixto $1.600"), ("T.png", "Tiramisú $1.600")]
     
     for archivo, nombre in postres:
         c1, c2, c3 = st.columns([0.03, 0.04, 0.1], gap="small")
@@ -226,6 +226,7 @@ elif st.session_state.fase == 'gracias':
     st.balloons()
     st.success("¡Tu pedido está en camino!")
     st.write("Gracias por participar.")
+
 
 
 
