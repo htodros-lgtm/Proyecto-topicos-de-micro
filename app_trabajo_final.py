@@ -65,8 +65,8 @@ if st.session_state.fase == 'perfil':
         sexo = st.radio("Sexo:", ["Masculino", "Femenino", "Otro"])
         edad = st.selectbox("Edad:", ["Menos de 20", "20-40", "40-60", "Más de 60"])
         if st.form_submit_button("Continuar"):
-            # SORTEO: 50% ve reloj, 50% no ve reloj
-            grupo = random.choice(['Con_Presion', 'Sin_Presion'])
+            # --- CAMBIO AQUÍ: Usamos los nombres exactos que querés en el Excel ---
+            grupo = random.choice(['con reloj', 'sin reloj'])
             
             st.session_state.grupo_asignado = grupo
             st.session_state.datos_usuario.update({'sexo': sexo, 'edad': edad})
@@ -112,7 +112,7 @@ elif st.session_state.fase == 'compra_milanesa':
             st.session_state.timer_start = time.time()
             st.rerun()
 
-# --- FASE 2: OFERTA POSTRES (TIEMPO FIJO 35s PARA TODOS) ---
+# --- FASE 2: OFERTA POSTRES ---
 elif st.session_state.fase == 'oferta_reloj':
     st.markdown("## ¡Pedido confirmado! Se está armando tu pedido...")
     st.markdown("<h4 style='text-align: center;'>Podés agregar un postre antes de que salga el repartidor.</h4>", unsafe_allow_html=True)
@@ -121,14 +121,13 @@ elif st.session_state.fase == 'oferta_reloj':
     elapsed = time.time() - st.session_state.timer_start
     remaining = max(0, int(35 - elapsed))
 
-    # SOLO MOSTRAMOS EL RELOJ SI ES DEL GRUPO 'Con_Reloj'
-    if st.session_state.grupo_asignado == 'Con_Reloj':
+    # --- CAMBIO AQUÍ: Chequeamos con el nuevo nombre "con reloj" ---
+    if st.session_state.grupo_asignado == 'con reloj':
         reloj_placeholder = st.empty()
         with reloj_placeholder.container():
             st.markdown(f"<div class='reloj-container'><p style='margin:0; font-weight:bold; font-size:14px; padding-bottom:2px;'>EL REPARTIDOR SALE EN:</p><p class='reloj-xl'>00:{remaining:02d}</p></div>", unsafe_allow_html=True)
     else:
-        # GRUPO SIN PRESIÓN: No ven nada (o un mensaje tranquilo) pero el tiempo corre igual
-        st.write("") # Espacio vacío donde iría el reloj
+        st.write("") 
 
     # Lista de postres
     postres = [("C.png", "Chocotorta $1.900"), ("F.png", "Flan Mixto $1.900"), ("T.png", "Tiramisú $1.900")]
@@ -155,32 +154,25 @@ elif st.session_state.fase == 'oferta_reloj':
             st.markdown("</div>", unsafe_allow_html=True)
         st.markdown("---") 
 
-    # LÓGICA DE AVANCE AUTOMÁTICO (PARA AMBOS GRUPOS)
     if remaining > 0:
         time.sleep(1)
         st.rerun()
     else:
-        # Cuando se acaban los 35s, ambos grupos pasan automáticamente
         st.session_state.fase = 'preguntas'
         st.rerun()
 
-# --- FASE 3: PREGUNTAS (MODIFICADA: LÓGICA DE "OTRO") ---
+# --- FASE 3: PREGUNTAS ---
 elif st.session_state.fase == 'preguntas':
     st.title("💡 Unas últimas preguntas")
     compro_postre = len(st.session_state.carrito) > 0
     
-    # IMPORTANTE: Aquí quitamos el 'with st.form' para permitir que el campo aparezca al instante
-    
     if compro_postre:
         st.info("Vimos que **AGREGASTE** postre.")
         
-        # Guardamos la selección inicial
         seleccion_motivo = st.radio("Comentanos por que lo has agregado", ["Para aprovechar la oferta", "Me dio antojo", "Otro"])
         
-        # LOGICA PARA "OTRO":
         if seleccion_motivo == "Otro":
             texto_otro = st.text_input("Por favor, escribí el motivo:", placeholder="Escribí acá...")
-            # Si escriben algo, guardamos eso. Si no, queda como "Otro"
             motivo_final = f"Otro: {texto_otro}" if texto_otro else "Otro"
         else:
             motivo_final = seleccion_motivo
@@ -192,7 +184,6 @@ elif st.session_state.fase == 'preguntas':
         
         seleccion_motivo = st.radio("¿Por qué decidiste no comprar?", ["Muy caro", "No quería postre", "Otro"])
         
-        # LOGICA PARA "OTRO":
         if seleccion_motivo == "Otro":
             texto_otro = st.text_input("Por favor, escribí el motivo:", placeholder="Escribí acá...")
             motivo_final = f"Otro: {texto_otro}" if texto_otro else "Otro"
@@ -201,19 +192,19 @@ elif st.session_state.fase == 'preguntas':
             
         hubiera = st.radio("¿Lo hubieras pedido si no te lo ofrecian al terminar tu compra?", ["Sí", "No"])
 
-    st.write("") # Espacio
-    # Ahora usamos un botón normal (fuera del form) para guardar
+    st.write("") 
+    
     if st.button("Finalizar"):
         try:
             nueva_fila = pd.DataFrame([{
                 "Fecha": datetime.now().strftime("%d/%m/%Y %H:%M"),
                 "Sexo": st.session_state.datos_usuario['sexo'],
                 "Edad": st.session_state.datos_usuario['edad'],
-                "Grupo": st.session_state.grupo_asignado,  
+                "Grupo": st.session_state.grupo_asignado, # Se guardará como "con reloj" o "sin reloj"
                 "Eligio": "SI" if compro_postre else "NO",
                 "Postres": ", ".join(st.session_state.carrito),
                 "Tiempo_Seg": st.session_state.datos_usuario.get('t_reaccion', "N/A"),
-                "Motivo": motivo_final, # Usamos la variable procesada
+                "Motivo": motivo_final,
                 "Sin_Oferta": hubiera
             }])
             
@@ -235,6 +226,7 @@ elif st.session_state.fase == 'gracias':
     st.balloons()
     st.success("¡Tu pedido está en camino!")
     st.write("Gracias por participar.")
+
 
 
 
