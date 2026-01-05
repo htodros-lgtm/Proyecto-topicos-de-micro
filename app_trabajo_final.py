@@ -63,7 +63,7 @@ if st.session_state.fase == 'perfil':
     st.markdown("## Datos generales")
     with st.form("perfil"):
         sexo = st.radio("Sexo:", ["Masculino", "Femenino", "Otro"])
-        edad = st.selectbox("Edad:", ["Menos de 20", "20-40", "40-60", "Más de 60"])
+        edad = st.selectbox("Edad:", ["Menos de 20", "20-30", "30-60", "Más de 60"])
         if st.form_submit_button("Continuar"):
             # Usamos los nombres exactos para el Excel
             grupo = random.choice(['con reloj', 'sin reloj'])
@@ -233,6 +233,7 @@ elif st.session_state.fase == 'gracias':
     st.balloons()
     st.success("¡Tu pedido está en camino!")
     st.write("Gracias por participar.")
+
 
 
 
