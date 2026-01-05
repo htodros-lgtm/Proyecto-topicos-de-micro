@@ -65,7 +65,7 @@ if st.session_state.fase == 'perfil':
         sexo = st.radio("Sexo:", ["Masculino", "Femenino", "Otro"])
         edad = st.selectbox("Edad:", ["Menos de 20", "20-40", "40-60", "Más de 60"])
         if st.form_submit_button("Continuar"):
-            # --- CAMBIO AQUÍ: Usamos los nombres exactos que querés en el Excel ---
+            # Usamos los nombres exactos para el Excel
             grupo = random.choice(['con reloj', 'sin reloj'])
             
             st.session_state.grupo_asignado = grupo
@@ -121,11 +121,18 @@ elif st.session_state.fase == 'oferta_reloj':
     elapsed = time.time() - st.session_state.timer_start
     remaining = max(0, int(35 - elapsed))
 
-    # --- CAMBIO AQUÍ: Chequeamos con el nuevo nombre "con reloj" ---
+    # --- AQUÍ ESTÁ EL CAMBIO DEL COLOR GRIS ---
     if st.session_state.grupo_asignado == 'con reloj':
         reloj_placeholder = st.empty()
         with reloj_placeholder.container():
-            st.markdown(f"<div class='reloj-container'><p style='margin:0; font-weight:bold; font-size:14px; padding-bottom:2px;'>EL REPARTIDOR SALE EN:</p><p class='reloj-xl'>00:{remaining:02d}</p></div>", unsafe_allow_html=True)
+            st.markdown(
+                f"<div class='reloj-container'>"
+                f"<p style='margin:0; font-weight:bold; font-size:14px; padding-bottom:2px; color: #555555;'>" # Color gris agregado aquí
+                f"EL REPARTIDOR SALE EN:</p>"
+                f"<p class='reloj-xl'>00:{remaining:02d}</p>"
+                f"</div>", 
+                unsafe_allow_html=True
+            )
     else:
         st.write("") 
 
