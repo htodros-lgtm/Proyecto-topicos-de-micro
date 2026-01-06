@@ -177,7 +177,7 @@ elif st.session_state.fase == 'preguntas':
         # Nueva pregunta directa
         motivo_final = st.radio(
             "¿Sentís que el reloj influyó en tu decisión?", 
-            ["Si", "No", "Nose", "No tuve reloj"]
+            ["Si", "No", "No sé", "No tuve reloj"]
         )
         
         # Ya no necesitamos el "else" ni el input de texto extra aquí
@@ -231,6 +231,7 @@ elif st.session_state.fase == 'gracias':
     st.balloons()
     st.success("¡Tu pedido está en camino!")
     st.write("Gracias por participar.")
+
 
 
 
