@@ -176,11 +176,8 @@ elif st.session_state.fase == 'preguntas':
     if compro_postre:
         st.info("Vimos que **AGREGASTE** postre.")
         
-        seleccion_motivo = st.radio("Comentanos por que lo has agregado", ["Para aprovechar la oferta", "Me dio antojo", "Otro"])
-        
-        if seleccion_motivo == "Otro":
-            texto_otro = st.text_input("Por favor, escribí el motivo:", placeholder="Escribí acá...")
-            motivo_final = f"Otro: {texto_otro}" if texto_otro else "Otro"
+        seleccion_motivo = st.radio("¿Sentis que el reloj influyó en tu decisión?", ["Si", "No", "Nose", "No tuve reloj"])
+    
         else:
             motivo_final = seleccion_motivo
             
@@ -233,6 +230,7 @@ elif st.session_state.fase == 'gracias':
     st.balloons()
     st.success("¡Tu pedido está en camino!")
     st.write("Gracias por participar.")
+
 
 
 
